@@ -1,0 +1,51 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+venv/
+.venv/
+*.egg-info/
+dist/
+build/
+
+# Data (never commit your brain)
+data/
+*.db
+*.db-wal
+*.db-shm
+backups/
+logs/
+
+# Demo dataset ships as a GitHub release asset, not in the clone (keeps it lean).
+# The file lives in this dir only so it can be uploaded to the release.
+solum_demo_seed.sql
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# fastembed model cache
+.cache/
+
+# Backup files
+*.bak
+*.bak.*
+*_backup.py
+*_sqlite_backup.py
+
+# Extensions (private agent layer)
+extensions.py
+run_demo.sh
+
+# License signing (OWNER ONLY - never ship)
+mint_license.py
+*.pem
+*.license
+solum-license*

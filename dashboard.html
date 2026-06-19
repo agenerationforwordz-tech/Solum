@@ -1,0 +1,2571 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SOLUM - Dashboard</title>
+<style>
+  /* === SOLUM DASHBOARD - Warm dark mode. Not void-dark, not sterile-white. Alive. === */
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Segoe UI', -apple-system, sans-serif;
+    background: #182030;
+    color: #dce4f0;
+    min-height: 100vh;
+  }
+
+  /* --- TOP BAR --- */
+  .topbar {
+    background: linear-gradient(135deg, #1e2a3c 0%, #1e2a3c 100%);
+    padding: 18px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid #303e50;
+  }
+
+  .topbar .logo {
+    font-size: 26px;
+    font-weight: 900;
+    letter-spacing: 3px;
+    background: linear-gradient(90deg, #7eb8da, #9dcbed, #b0d8f0);
+   -webkit-background-clip: text;
+   -webkit-text-fill-color: transparent;
+  }
+
+  .topbar .logo span {
+    font-size: 12px;
+    font-weight: 400;
+    letter-spacing: 1px;
+   -webkit-text-fill-color: #607080;
+  }
+
+  .topbar .status {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    font-size: 13px;
+    color: #7888a0;
+  }
+
+  .status-dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    display: inline-block;
+    animation: pulse 2s infinite;
+  }
+
+  .status-dot.online {
+    background: #34d399;
+    box-shadow: 0 0 10px #34d399;
+  }
+
+  .status-dot.offline {
+    background: #f87171;
+    box-shadow: 0 0 10px #f87171;
+    animation: none;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; box-shadow: 0 0 10px #34d399; }
+    50% { opacity: 0.6; box-shadow: 0 0 20px #34d399; }
+  }
+
+  /* --- AUTH OVERLAY --- */
+  .auth-overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(24, 32, 48, 0.95);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+  }
+
+  .auth-overlay.hidden { display: none; }
+
+  .auth-box {
+    background: #1e2a3c;
+    border: 1px solid #303e50;
+    border-radius: 20px;
+    padding: 40px;
+    max-width: 440px;
+    width: 90%;
+    text-align: center;
+  }
+
+  .auth-box h2 {
+    font-size: 24px;
+    font-weight: 800;
+    background: linear-gradient(90deg, #7eb8da, #9dcbed);
+   -webkit-background-clip: text;
+   -webkit-text-fill-color: transparent;
+    margin-bottom: 8px;
+  }
+
+  .auth-box p {
+    color: #7888a0;
+    font-size: 14px;
+    margin-bottom: 20px;
+    line-height: 1.5;
+  }
+
+  .auth-box input {
+    width: 100%;
+    background: #162230;
+    border: 2px solid #3a4e60;
+    border-radius: 14px;
+    padding: 14px 18px;
+    font-size: 15px;
+    color: #dce4f0;
+    outline: none;
+    margin-bottom: 8px;
+    font-family: inherit;
+  }
+
+  .auth-box input[type="password"] {
+    font-family: monospace;
+  }
+
+  .auth-box input:focus { border-color: #7eb8da; }
+
+  .auth-box .server-input {
+    font-family: 'Segoe UI', -apple-system, sans-serif;
+    margin-bottom: 12px;
+  }
+
+  .auth-box button {
+    background: linear-gradient(135deg, #7eb8da, #8ec4e0, #9dcbed);
+    border: none;
+    border-radius: 14px;
+    padding: 14px 32px;
+    font-size: 15px;
+    font-weight: 700;
+    color: #0e1620;
+    cursor: pointer;
+    width: 100%;
+    margin-top: 8px;
+    box-shadow: 0 4px 16px rgba(126, 184, 218, 0.35);
+    transition: transform 0.15s;
+  }
+
+  .auth-box button:hover { transform: translateY(-2px); }
+
+  .auth-error {
+    color: #f87171;
+    font-size: 13px;
+    margin-top: 10px;
+    min-height: 20px;
+  }
+
+  /* --- MAIN LAYOUT --- */
+  .container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 24px 32px;
+  }
+
+  /* --- CAPTURE THOUGHT --- */
+  .capture-section {
+    background: linear-gradient(135deg, #1e2e42 0%, #1e3048 100%);
+    border-radius: 20px;
+    padding: 28px 30px;
+    margin-bottom: 22px;
+    border: 1px solid #3a4e60;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.2);
+  }
+
+  .capture-section h3 {
+    font-size: 18px;
+    font-weight: 700;
+    color: #9dcbed;
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .capture-section h3 .icon { font-size: 24px; }
+
+  .capture-textarea {
+    width: 100%;
+    min-height: 100px;
+    background: #162230;
+    border: 2px solid #3a4e60;
+    border-radius: 16px;
+    padding: 18px 20px;
+    font-size: 16px;
+    color: #dce4f0;
+    font-family: inherit;
+    resize: vertical;
+    outline: none;
+    transition: border-color 0.3s, box-shadow 0.3s;
+    line-height: 1.5;
+  }
+
+  .capture-textarea:focus {
+    border-color: #7eb8da;
+    box-shadow: 0 0 0 4px rgba(126, 184, 218, 0.15);
+  }
+
+  .capture-textarea::placeholder { color: #506070; }
+
+  .capture-row {
+    display: flex;
+    gap: 12px;
+    margin-top: 14px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  .capture-input {
+    background: #162230;
+    border: 2px solid #3a4e60;
+    border-radius: 14px;
+    padding: 12px 18px;
+    font-size: 14px;
+    color: #dce4f0;
+    outline: none;
+    flex: 1;
+    min-width: 140px;
+    transition: border-color 0.3s;
+  }
+
+  .capture-input:focus { border-color: #7eb8da; }
+  .capture-input::placeholder { color: #506070; }
+
+  .capture-select {
+    background: #162230;
+    border: 2px solid #3a4e60;
+    border-radius: 14px;
+    padding: 12px 18px;
+    font-size: 14px;
+    color: #dce4f0;
+    outline: none;
+    cursor: pointer;
+  }
+
+  .capture-btn {
+    background: linear-gradient(135deg, #7eb8da, #8ec4e0, #9dcbed);
+    border: none;
+    border-radius: 14px;
+    padding: 14px 32px;
+    font-size: 15px;
+    font-weight: 700;
+    color: #0e1620;
+    cursor: pointer;
+    letter-spacing: 0.5px;
+    transition: transform 0.15s, box-shadow 0.15s;
+    box-shadow: 0 4px 16px rgba(126, 184, 218, 0.35);
+  }
+
+  .capture-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 24px rgba(126, 184, 218, 0.5);
+  }
+
+  .capture-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  .capture-status {
+    font-size: 13px;
+    margin-top: 10px;
+    min-height: 20px;
+  }
+
+  .capture-status.success { color: #34d399; }
+  .capture-status.error { color: #f87171; }
+  .capture-status.warning { color: #fbbf24; }
+
+  /* --- STAT CARDS --- */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 22px;
+  }
+
+  .stat-card {
+    background: #1e2a3c;
+    border-radius: 16px;
+    padding: 20px 24px;
+    border: 1px solid #2a3a50;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: var(--accent);
+  }
+
+  .stat-card:nth-child(1) { --accent: linear-gradient(90deg, #7eb8da, #8ec4e0); }
+  .stat-card:nth-child(2) { --accent: linear-gradient(90deg, #5eabb5, #b0d8f0); }
+  .stat-card:nth-child(3) { --accent: linear-gradient(90deg, #34d399, #2dd4bf); }
+  .stat-card:nth-child(4) { --accent: linear-gradient(90deg, #fbbf24, #f97316); }
+
+  .stat-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: #607080;
+    margin-bottom: 8px;
+    font-weight: 600;
+  }
+
+  .stat-value {
+    font-size: 32px;
+    font-weight: 800;
+    line-height: 1;
+    white-space: nowrap;
+  }
+
+  .stat-card:nth-child(1) .stat-value { color: #8ec4e0; }
+  .stat-card:nth-child(2) .stat-value { color: #5eabb5; }
+  .stat-card:nth-child(3) .stat-value { color: #34d399; }
+  .stat-card:nth-child(4) .stat-value { color: #fbbf24; }
+
+  .stat-sub {
+    font-size: 12px;
+    color: #506070;
+    margin-top: 6px;
+  }
+
+  .stat-sub .up { color: #34d399; font-weight: 600; }
+
+  /* --- SEARCH BAR --- */
+  .search-section { margin-bottom: 22px; }
+
+  .search-bar {
+    display: flex;
+    gap: 12px;
+  }
+
+  .search-wrap {
+    flex: 1;
+    position: relative;
+  }
+
+  .search-bar input {
+    width: 100%;
+    background: #1e2a3c;
+    border: 2px solid #2a3a50;
+    border-radius: 14px;
+    padding: 14px 40px 14px 20px;
+    font-size: 15px;
+    color: #dce4f0;
+    outline: none;
+    transition: border-color 0.3s, box-shadow 0.3s;
+  }
+
+  .search-clear {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: #506070;
+    font-size: 18px;
+    cursor: pointer;
+    padding: 4px 6px;
+    line-height: 1;
+    border-radius: 50%;
+    display: none;
+    transition: color 0.15s, background 0.15s;
+  }
+
+  .search-clear:hover {
+    color: #f87171;
+    background: rgba(248, 113, 113, 0.1);
+  }
+
+  .search-clear.visible { display: block; }
+
+  .search-bar input:focus {
+    border-color: #7eb8da;
+    box-shadow: 0 0 0 3px rgba(126, 184, 218, 0.12);
+  }
+
+  .search-bar input::placeholder { color: #506070; }
+
+  .search-btn {
+    background: linear-gradient(135deg, #7eb8da, #8ec4e0);
+    border: none;
+    border-radius: 14px;
+    padding: 14px 28px;
+    font-size: 14px;
+    font-weight: 700;
+    color: #0e1620;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(126, 184, 218, 0.3);
+    transition: transform 0.15s;
+  }
+
+  .search-btn:hover { transform: translateY(-1px); }
+  .tag-match-banner { padding: 10px 16px; background: #1a2a3a; border: 1px solid #2a4a5a; border-radius: 8px; margin: 8px 12px; color: #8090a0; font-size: 13px; }
+
+  /* --- TWO COLUMN LAYOUT --- */
+  .columns {
+    display: grid;
+    grid-template-columns: 1fr 380px;
+    gap: 20px;
+    align-items: start;
+  }
+
+  /* --- PANELS --- */
+  .panel {
+    background: #1e2a3c;
+    border: 1px solid #2a3a50;
+    border-radius: 16px;
+    overflow: hidden;
+  }
+
+  /* Left panel (thoughts) — fixed height with internal scroll.
+     Height matches the sidebar's natural height so both columns
+     end at the same level. Page itself scrolls normally. */
+  .columns > .panel {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .panel-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid #283848;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .panel-title {
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    color: #7888a0;
+  }
+
+  /* --- THOUGHT ITEMS --- */
+  .thought-scroll {
+    /* Height set dynamically by JS to match the sidebar exactly.
+       Infinite scroll loads more thoughts as user scrolls. */
+    overflow-y: auto;
+    scroll-behavior: smooth;
+  }
+
+  .thought-scroll::-webkit-scrollbar { width: 6px; }
+  .thought-scroll::-webkit-scrollbar-track { background: #162230; }
+  .thought-scroll::-webkit-scrollbar-thumb {
+    background: #3a5060;
+    border-radius: 3px;
+  }
+  .thought-scroll::-webkit-scrollbar-thumb:hover { background: #6aaccc; }
+
+  .thought-item {
+    padding: 16px 20px;
+    border-bottom: 1px solid #253545;
+    transition: background 0.2s;
+    cursor: pointer;
+  }
+
+  .thought-item:hover { background: rgba(126, 184, 218, 0.05); }
+
+  /* --- LOADING SPINNER --- */
+  .load-more {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 20px;
+    color: #607080;
+    font-size: 13px;
+    font-weight: 500;
+  }
+
+  .load-more.hidden { display: none; }
+
+  .spinner {
+    width: 18px; height: 18px;
+    border: 2px solid #303e50;
+    border-top-color: #7eb8da;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  .load-count {
+    text-align: center;
+    padding: 8px;
+    font-size: 11px;
+    color: #3a5060;
+    letter-spacing: 0.5px;
+  }
+
+  .thought-meta {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 6px;
+  }
+
+  .thought-type {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    padding: 3px 10px;
+    border-radius: 8px;
+  }
+
+  .thought-type.thought { background: rgba(120,136,160,0.15); color: #90a0b0; }
+  .thought-type.decision { background: rgba(52,211,153,0.15); color: #34d399; }
+  .thought-type.insight { background: rgba(96,165,250,0.15); color: #60a5fa; }
+  .thought-type.project { background: rgba(251,191,36,0.15); color: #fbbf24; }
+  .thought-type.person { background: rgba(94,171,181,0.15); color: #5eabb5; }
+  .thought-type.instruction { background: rgba(126,184,218,0.15); color: #7eb8da; }
+  .thought-type.reference { background: rgba(45,212,191,0.15); color: #2dd4bf; }
+  .thought-type.session { background: rgba(148,163,184,0.15); color: #94a3b8; }
+
+  .thought-time { font-size: 12px; color: #607080; }
+
+  .thought-machine {
+    font-size: 11px;
+    color: #506070;
+    margin-left: auto;
+    background: #253545;
+    padding: 2px 10px;
+    border-radius: 6px;
+  }
+
+  .thought-content {
+    font-size: 14px;
+    line-height: 1.55;
+    color: #b0c0d0;
+    display: -webkit-box;
+   -webkit-line-clamp: 2;
+   -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .thought-tags {
+    margin-top: 8px;
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
+  .tag {
+    font-size: 11px;
+    padding: 3px 11px;
+    border-radius: 10px;
+    background: rgba(142, 196, 224, 0.12);
+    color: #9dcbed;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+  }
+
+  .tag:hover {
+    background: rgba(142, 196, 224, 0.3);
+    color: #c0daf0;
+  }
+
+  .thought-files {
+    margin-top: 6px;
+    font-size: 11px;
+    color: #7eb8da;
+    font-weight: 600;
+  }
+
+  /* --- SIDEBAR --- */
+  .sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .sidebar-scroll {
+    max-height: 340px;
+    overflow-y: auto;
+    scroll-behavior: smooth;
+  }
+
+  .sidebar-scroll::-webkit-scrollbar { width: 5px; }
+  .sidebar-scroll::-webkit-scrollbar-track { background: #162230; }
+  .sidebar-scroll::-webkit-scrollbar-thumb {
+    background: #3a5060;
+    border-radius: 3px;
+  }
+  .sidebar-scroll::-webkit-scrollbar-thumb:hover { background: #6aaccc; }
+
+  /* --- TRENDING TAGS --- */
+  .trend-item {
+    padding: 12px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid #253545;
+  }
+
+  .trend-item:last-child { border-bottom: none; }
+  .trend-tag { font-size: 14px; color: #b0c0d0; font-weight: 500; cursor: pointer; transition: color 0.15s; }
+  .trend-item:hover { background: rgba(126, 184, 218, 0.06); }
+  .trend-item:hover .trend-tag { color: #9dcbed; }
+
+  .trend-badge {
+    font-size: 12px;
+    font-weight: 700;
+    padding: 3px 12px;
+    border-radius: 10px;
+  }
+
+  .trend-badge.up { background: rgba(52,211,153,0.15); color: #34d399; }
+  .trend-badge.down { background: rgba(248,113,113,0.15); color: #f87171; }
+  .trend-badge.new { background: rgba(96,165,250,0.15); color: #60a5fa; }
+  .trend-badge.flat { background: rgba(120,136,160,0.1); color: #607080; }
+
+  /* --- DEVICE ACTIVITY --- */
+  .device-bar-container { padding: 14px 20px; }
+
+  .device-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+
+  .device-row:last-child { margin-bottom: 0; }
+
+  .device-name {
+    font-size: 13px;
+    color: #7888a0;
+    min-width: 90px;
+    text-align: right;
+    font-weight: 500;
+  }
+
+  .device-bar {
+    flex: 1;
+    height: 22px;
+    background: #253545;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  .device-fill {
+    height: 100%;
+    border-radius: 8px;
+    transition: width 1s ease;
+  }
+
+  /* Cycle through 4 gradient colors for device bars */
+  .device-row:nth-child(4n+1) .device-fill { background: linear-gradient(90deg, #7eb8da, #8ec4e0); }
+  .device-row:nth-child(4n+2) .device-fill { background: linear-gradient(90deg, #5eabb5, #b0d8f0); }
+  .device-row:nth-child(4n+3) .device-fill { background: linear-gradient(90deg, #34d399, #2dd4bf); }
+  .device-row:nth-child(4n+0) .device-fill { background: linear-gradient(90deg, #fbbf24, #f97316); }
+
+  .device-count {
+    font-size: 13px;
+    font-weight: 700;
+    color: #b0c0d0;
+    min-width: 40px;
+  }
+
+  /* --- HOTTEST MEMORIES --- */
+  .hot-item {
+    padding: 12px 20px;
+    border-bottom: 1px solid #253545;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    transition: background 0.2s;
+  }
+
+  .hot-item:hover { background: rgba(126, 184, 218, 0.05); }
+  .hot-item:last-child { border-bottom: none; }
+
+  .hot-rank {
+    font-size: 16px;
+    font-weight: 900;
+    min-width: 32px;
+    height: 32px;
+    line-height: 32px;
+    text-align: center;
+    border-radius: 10px;
+  }
+
+  .hot-item:nth-child(1) .hot-rank { background: rgba(251,191,36,0.2); color: #fbbf24; }
+  .hot-item:nth-child(2) .hot-rank { background: rgba(148,163,184,0.15); color: #94a3b8; }
+  .hot-item:nth-child(3) .hot-rank { background: rgba(94,171,181,0.15); color: #5eabb5; }
+  .hot-item:nth-child(4) .hot-rank { background: rgba(126,184,218,0.15); color: #7eb8da; }
+  .hot-item:nth-child(n+5) .hot-rank { background: rgba(120,136,160,0.1); color: #607080; }
+
+  .hot-preview {
+    font-size: 13px;
+    color: #7888a0;
+    line-height: 1.4;
+    flex: 1;
+  }
+
+  .hot-count {
+    font-size: 11px;
+    color: #607080;
+    white-space: nowrap;
+    font-weight: 600;
+  }
+
+  /* --- EMPTY STATE --- */
+  .empty-state {
+    text-align: center;
+    padding: 60px 40px;
+  }
+
+  .empty-state .brain-icon {
+    font-size: 72px;
+    margin-bottom: 20px;
+    animation: float 3s ease-in-out infinite;
+  }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-8px); }
+  }
+
+  .empty-state h3 {
+    font-size: 24px;
+    font-weight: 700;
+    color: #9dcbed;
+    margin-bottom: 10px;
+  }
+
+  .empty-state p {
+    font-size: 15px;
+    color: #7888a0;
+    max-width: 440px;
+    margin: 0 auto 16px;
+    line-height: 1.65;
+  }
+
+  .empty-state .hint {
+    font-size: 13px;
+    color: #8ec4e0;
+    background: rgba(142, 196, 224, 0.1);
+    display: inline-block;
+    padding: 10px 20px;
+    border-radius: 12px;
+    border: 1px solid rgba(142, 196, 224, 0.2);
+  }
+
+  /* --- FOOTER --- */
+  .footer {
+    text-align: center;
+    padding: 24px;
+    color: #3a5060;
+    font-size: 12px;
+    letter-spacing: 0.5px;
+    margin-top: 32px;
+  }
+
+  .footer a {
+    color: #7eb8da;
+    text-decoration: none;
+    font-weight: 600;
+  }
+
+  /* --- TOP BAR BUTTONS --- */
+  .topbar-btn {
+    background: none;
+    border: 1px solid #303e50;
+    border-radius: 8px;
+    padding: 5px 12px;
+    font-size: 11px;
+    color: #607080;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .topbar-btn:hover {
+    border-color: #7eb8da;
+    color: #9dcbed;
+  }
+
+
+  /* Admin nav links in topbar */
+  .topbar-nav {
+    display: flex;
+    gap: 4px;
+    margin-right: 12px;
+  }
+  .topbar-nav a {
+    color: rgba(255,255,255,0.5);
+    text-decoration: none;
+    font-size: 12px;
+    padding: 4px 10px;
+    border-radius: 6px;
+    border: 1px solid transparent;
+    transition: all 0.2s;
+  }
+  .topbar-nav a:hover {
+    color: #9dcbed;
+    background: rgba(255,255,255,0.05);
+    border-color: rgba(255,255,255,0.1);
+  }
+  .topbar-nav a .nav-icon {
+    margin-right: 4px;
+  }
+
+  .topbar-btn.logout:hover {
+    border-color: #f87171;
+    color: #f87171;
+  }
+
+  /* --- SEED PHRASE DISPLAY --- */
+  .seed-box {
+    background: #182030;
+    border: 2px solid #fbbf24;
+    border-radius: 14px;
+    padding: 24px 20px;
+    margin: 16px 0;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+  }
+
+  .seed-word {
+    background: #1e2a3c;
+    border: 1px solid #303e50;
+    border-radius: 8px;
+    padding: 10px 8px;
+    font-family: monospace;
+    font-size: 15px;
+    color: #fbbf24;
+    text-align: center;
+    user-select: all;
+  }
+
+  .seed-word .seed-num {
+    color: #607080;
+    font-size: 11px;
+    margin-right: 4px;
+  }
+
+  .seed-confirm-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 16px 0;
+    padding: 14px 16px;
+    background: #182030;
+    border: 1px solid #303e50;
+    border-radius: 10px;
+    cursor: pointer;
+  }
+
+  .seed-confirm-row input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    accent-color: #7eb8da;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+
+  .seed-confirm-row span {
+    color: #dce4f0;
+    font-size: 14px;
+    font-weight: 600;
+  }
+
+  .seed-warning {
+    color: #f87171;
+    font-size: 13px;
+    font-weight: 700;
+    margin: 10px 0;
+    line-height: 1.5;
+  }
+
+  /* --- SETTINGS OVERLAY --- */
+  .settings-overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(24, 32, 48, 0.92);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+  }
+
+  .settings-overlay.hidden { display: none; }
+
+  .settings-box {
+    background: #1e2a3c;
+    border: 1px solid #303e50;
+    border-radius: 20px;
+    padding: 32px 36px;
+    max-width: 520px;
+    width: 90%;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+
+  .settings-box h2 {
+    font-size: 22px;
+    font-weight: 800;
+    color: #9dcbed;
+    margin-bottom: 20px;
+  }
+
+  .settings-section {
+    margin-bottom: 24px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #283848;
+  }
+
+  .settings-section:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+
+  .settings-section h3 {
+    font-size: 14px;
+    font-weight: 700;
+    color: #7888a0;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 12px;
+  }
+
+  .settings-input {
+    width: 100%;
+    background: #162230;
+    border: 2px solid #3a4e60;
+    border-radius: 12px;
+    padding: 12px 16px;
+    font-size: 14px;
+    color: #dce4f0;
+    outline: none;
+    margin-bottom: 8px;
+  }
+
+  .settings-input:focus { border-color: #7eb8da; }
+
+  .settings-btn {
+    background: linear-gradient(135deg, #7eb8da, #8ec4e0);
+    border: none;
+    border-radius: 12px;
+    padding: 10px 24px;
+    font-size: 13px;
+    font-weight: 700;
+    color: #fff;
+    cursor: pointer;
+    margin-top: 4px;
+    transition: transform 0.15s;
+  }
+
+  .settings-btn:hover { transform: translateY(-1px); }
+  .settings-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+  .settings-btn.close {
+    background: #303e50;
+    width: 100%;
+    margin-top: 16px;
+  }
+
+  .settings-msg {
+    font-size: 12px;
+    margin-top: 6px;
+    min-height: 18px;
+  }
+  .settings-msg.ok { color: #34d399; }
+  .settings-msg.err { color: #f87171; }
+
+  /* --- SESSION & HISTORY LIST --- */
+  .session-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 0;
+    border-bottom: 1px solid #253545;
+    font-size: 13px;
+  }
+  .session-item:last-child { border-bottom: none; }
+  .session-device { color: #9dcbed; font-weight: 600; }
+  .session-time { color: #607080; font-size: 11px; }
+  .session-info { flex: 1; display: flex; flex-direction: column; gap: 2px; }
+  .session-meta { color: #607080; font-size: 11px; }
+  .session-current { color: #34d399; font-size: 10px; font-weight: 600; text-transform: uppercase; }
+  .revoke-btn {
+    background: transparent; border: 1px solid #f87171; color: #f87171;
+    padding: 3px 10px; border-radius: 4px; cursor: pointer; font-size: 11px;
+    transition: all 0.15s;
+  }
+  .revoke-btn:hover { background: #f87171; color: #182030; }
+  .history-item {
+    display: flex; align-items: center; gap: 8px;
+    padding: 6px 0; border-bottom: 1px solid #253545; font-size: 12px;
+  }
+  .history-item:last-child { border-bottom: none; }
+  .history-success { color: #34d399; }
+  .history-fail { color: #f87171; }
+
+  /* --- THOUGHT DETAIL MODAL --- */
+  .detail-overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(24, 32, 48, 0.92);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+  }
+
+  .detail-overlay.hidden { display: none; }
+
+  .detail-box {
+    background: #1e2a3c;
+    border: 1px solid #303e50;
+    border-radius: 20px;
+    padding: 32px 36px;
+    max-width: 700px;
+    width: 92%;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+
+  .detail-box::-webkit-scrollbar { width: 6px; }
+  .detail-box::-webkit-scrollbar-track { background: #162230; }
+  .detail-box::-webkit-scrollbar-thumb { background: #3a5060; border-radius: 3px; }
+
+  .detail-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+
+  .detail-id {
+    font-size: 13px;
+    color: #607080;
+    font-weight: 600;
+  }
+
+  .detail-content {
+    font-size: 15px;
+    line-height: 1.7;
+    color: #dce4f0;
+    white-space: pre-wrap;
+    word-break: break-word;
+    background: #182030;
+    border: 1px solid #283848;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 16px;
+    max-height: 45vh;
+    overflow-y: auto;
+  }
+
+  .detail-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 12px;
+    font-size: 12px;
+    color: #607080;
+  }
+
+  .detail-meta span {
+    background: #253545;
+    padding: 4px 12px;
+    border-radius: 8px;
+  }
+
+  .detail-files {
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid #283848;
+  }
+
+  .detail-files h4 {
+    font-size: 13px;
+    font-weight: 700;
+    color: #7eb8da;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 10px;
+  }
+
+  .file-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 14px;
+    background: #182030;
+    border: 1px solid #283848;
+    border-radius: 10px;
+    margin-bottom: 6px;
+  }
+
+  .file-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+    flex: 1;
+  }
+
+  .file-icon { font-size: 18px; flex-shrink: 0; }
+
+  .file-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: #9dcbed;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .file-size {
+    font-size: 11px;
+    color: #607080;
+    white-space: nowrap;
+    margin-left: 4px;
+  }
+
+  .file-download {
+    background: linear-gradient(135deg, #7eb8da, #8ec4e0);
+    border: none;
+    border-radius: 8px;
+    padding: 6px 14px;
+    font-size: 11px;
+    font-weight: 700;
+    color: #fff;
+    cursor: pointer;
+    text-decoration: none;
+    flex-shrink: 0;
+    transition: transform 0.15s;
+  }
+
+  .file-download:hover { transform: translateY(-1px); }
+
+  .detail-close {
+    background: #303e50;
+    border: none;
+    border-radius: 12px;
+    padding: 10px 24px;
+    font-size: 13px;
+    font-weight: 700;
+    color: #dce4f0;
+    cursor: pointer;
+    width: 100%;
+    margin-top: 16px;
+  }
+
+  .detail-close:hover { background: #3a5060; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* --- RESPONSIVE --- */
+  @media (max-width: 900px) {
+    .columns { grid-template-columns: 1fr; }
+    .stats-grid { grid-template-columns: repeat(2, 1fr); }
+    .topbar { padding: 14px 16px; flex-wrap: wrap; gap: 10px; }
+    .container { padding: 16px; }
+  }
+
+  @media (max-width: 480px) {
+    .seed-box { grid-template-columns: repeat(2, 1fr); }
+    .stats-grid { grid-template-columns: 1fr 1fr; }
+    .auth-box { padding: 28px 20px; }
+  }
+
+  /* --- EDIT MODE --- */
+  .detail-actions {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+
+  .edit-btn, .delete-btn {
+    padding: 6px 16px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    border: 1px solid #3a4e60;
+    transition: all 0.2s;
+  }
+
+  .edit-btn {
+    background: rgba(126, 184, 218, 0.15);
+    color: #7eb8da;
+  }
+
+  .edit-btn:hover {
+    background: rgba(126, 184, 218, 0.25);
+    border-color: #7eb8da;
+  }
+
+  .delete-btn {
+    background: rgba(248, 113, 113, 0.1);
+    color: #f87171;
+    margin-left: auto;
+  }
+
+  .delete-btn:hover {
+    background: rgba(248, 113, 113, 0.2);
+    border-color: #f87171;
+  }
+
+  .edit-form { display: none; }
+  .edit-form.active { display: block; }
+  .detail-view.editing { display: none; }
+
+  .edit-textarea {
+    width: 100%;
+    min-height: 180px;
+    background: #162230;
+    border: 2px solid #3a4e60;
+    border-radius: 12px;
+    padding: 14px 16px;
+    font-size: 14px;
+    color: #dce4f0;
+    font-family: 'Segoe UI', -apple-system, sans-serif;
+    resize: vertical;
+    outline: none;
+    line-height: 1.6;
+    margin-bottom: 10px;
+  }
+
+  .edit-textarea:focus {
+    border-color: #7eb8da;
+    box-shadow: 0 0 0 3px rgba(126, 184, 218, 0.12);
+  }
+
+  .edit-row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 10px;
+    flex-wrap: wrap;
+  }
+
+  .edit-field {
+    flex: 1;
+    min-width: 120px;
+  }
+
+  .edit-field label {
+    display: block;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #607080;
+    margin-bottom: 4px;
+    font-weight: 600;
+  }
+
+  .edit-field input, .edit-field select {
+    width: 100%;
+    background: #162230;
+    border: 1px solid #3a4e60;
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-size: 13px;
+    color: #dce4f0;
+    outline: none;
+  }
+
+  .edit-field input:focus, .edit-field select:focus {
+    border-color: #7eb8da;
+  }
+
+  .edit-field select {
+    cursor: pointer;
+  }
+
+  .edit-save-row {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+  }
+
+  .save-btn {
+    padding: 10px 28px;
+    background: linear-gradient(135deg, #7eb8da, #8ec4e0, #9dcbed);
+    border: none;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 700;
+    color: #0e1620;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(126, 184, 218, 0.3);
+    transition: transform 0.15s;
+  }
+
+  .save-btn:hover { transform: translateY(-1px); }
+  .save-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+  .cancel-btn {
+    padding: 10px 20px;
+    background: transparent;
+    border: 1px solid #3a4e60;
+    border-radius: 10px;
+    font-size: 14px;
+    color: #7888a0;
+    cursor: pointer;
+  }
+
+  .cancel-btn:hover { border-color: #607080; color: #dce4f0; }
+
+  .edit-status {
+    font-size: 13px;
+    margin-top: 8px;
+    min-height: 18px;
+  }
+
+  .edit-status.ok { color: #34d399; }
+  .edit-status.err { color: #f87171; }
+
+  /* --- EDIT HISTORY / SIGNATURES --- */
+  .edit-history {
+    margin-top: 16px;
+    padding-top: 12px;
+    border-top: 1px solid #253545;
+  }
+
+  .edit-history h4 {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: #607080;
+    margin-bottom: 10px;
+    font-weight: 600;
+  }
+
+  .signature {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 8px 12px;
+    background: rgba(126, 184, 218, 0.04);
+    border-left: 2px solid #3a4e60;
+    border-radius: 0 6px 6px 0;
+    margin-bottom: 6px;
+    font-size: 12px;
+  }
+
+  .signature .sig-icon {
+    font-size: 14px;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  .signature .sig-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .signature .sig-action {
+    color: #9dcbed;
+    font-weight: 600;
+  }
+
+  .signature .sig-fields {
+    color: #607080;
+    font-size: 11px;
+  }
+
+  .signature .sig-time {
+    color: #506070;
+    font-size: 11px;
+  }
+
+  .signature.sig-create { border-left-color: #34d399; }
+  .signature.sig-update { border-left-color: #7eb8da; }
+  .signature.sig-delete { border-left-color: #f87171; }
+
+</style>
+</head>
+<body>
+
+<!-- AUTH OVERLAY - Swaps between: setup wizard, seed display, login, recovery -->
+<div class="auth-overlay" id="auth-overlay">
+
+  <!-- STATE: First-time setup -->
+  <div class="auth-box" id="view-setup" style="display:none">
+    <h2>Welcome to SOLUM</h2>
+    <p>Create your account. This password protects the dashboard - your AI tools still use the API key.</p>
+    <input type="password" id="setup-pw" class="settings-input" placeholder="Choose a password (6+ characters)" />
+    <input type="password" id="setup-pw2" class="settings-input" placeholder="Confirm password" />
+    <input type="text" id="setup-device" class="settings-input" placeholder="Name this device (e.g. my-laptop)" />
+    <button onclick="doSetup()">Create Account</button>
+    <div class="auth-error" id="setup-error"></div>
+  </div>
+
+  <!-- STATE: Seed phrase display (shown once after setup) -->
+  <div class="auth-box" id="view-seed" style="display:none;max-width:540px">
+    <h2>Your Recovery Phrase</h2>
+    <p>Write these 12 words down on paper. This is the ONLY way to recover your account if you forget your password.</p>
+    <div class="seed-box" id="seed-display"></div>
+    <div class="seed-warning">
+      This phrase will NEVER be shown again. It cannot be retrieved later.
+      Store it somewhere safe - not on this device.
+    </div>
+    <label class="seed-confirm-row" onclick="var cb=this.querySelector('input');if(event.target!==cb){cb.checked=!cb.checked;cb.dispatchEvent(new Event('change'))}">
+      <input type="checkbox" id="seed-confirm" onchange="document.getElementById('seed-continue').disabled=!this.checked" />
+      <span>I have written down my recovery phrase</span>
+    </label>
+    <button id="seed-continue" disabled onclick="seedDone()">Continue</button>
+  </div>
+
+  <!-- STATE: Admin key (set your own or generate one, shown once) -->
+  <div class="auth-box" id="view-adminkey" style="display:none;max-width:540px">
+    <h2>Your Admin Key</h2>
+    <p>This is the master credential for your Solum. It lets an AI agent delete a memory only when you hand it this key, and it authorizes automation and command-line tools. Choose your own, or leave it blank to generate a strong one.</p>
+    <input type="text" id="admin-key-input" class="settings-input" placeholder="Choose an admin key (8+ characters), or leave blank to generate" />
+    <div class="auth-error" id="admin-key-error"></div>
+    <button id="admin-key-set" onclick="setAdminKey()">Set admin key</button>
+    <div id="admin-key-result" style="display:none">
+      <div class="seed-warning" style="margin-top:14px">Save this admin key somewhere safe. It is shown once and cannot be retrieved later.</div>
+      <div id="admin-key-shown" style="font-family:monospace;font-size:15px;color:#7eb8da;background:#0e1622;border:1px solid #2a3a50;border-radius:8px;padding:12px;word-break:break-all;margin:8px 0"></div>
+      <label class="seed-confirm-row" onclick="var cb=this.querySelector('input');if(event.target!==cb){cb.checked=!cb.checked;cb.dispatchEvent(new Event('change'))}">
+        <input type="checkbox" id="admin-key-confirm" onchange="document.getElementById('admin-key-continue').disabled=!this.checked" />
+        <span>I have saved my admin key</span>
+      </label>
+      <button id="admin-key-continue" disabled onclick="showView('profile')">Continue</button>
+    </div>
+  </div>
+
+  <!-- STATE: Star 0 owner profile (the center of the constellation) -->
+  <div class="auth-box" id="view-profile" style="display:none;max-width:540px">
+    <h2>Set Up Star 0</h2>
+    <p>Star 0 is the center of your constellation, the point every memory orbits. Tell Solum who this is for so you, and your agents, always have that context.</p>
+    <input type="text" id="prof-name" class="settings-input" placeholder="Who is this for? (your name, or your business)" />
+    <div style="margin:10px 0 4px;color:#7888a0;font-size:13px">What are you using Solum for?</div>
+    <div style="display:flex;gap:16px;margin-bottom:10px">
+      <label style="color:#cdd6e4;font-size:14px;cursor:pointer"><input type="radio" name="prof-use" value="business" /> Business</label>
+      <label style="color:#cdd6e4;font-size:14px;cursor:pointer"><input type="radio" name="prof-use" value="personal" checked /> Personal</label>
+      <label style="color:#cdd6e4;font-size:14px;cursor:pointer"><input type="radio" name="prof-use" value="business and personal" /> Both</label>
+    </div>
+    <textarea id="prof-desc" class="settings-input" style="min-height:60px;resize:vertical" placeholder="In a line or two: what do you use Solum for?"></textarea>
+    <input type="text" id="prof-role" class="settings-input" placeholder="Your role (optional, e.g. founder, engineer, caregiver)" />
+    <input type="text" id="prof-projects" class="settings-input" placeholder="Main projects or clients (optional, comma separated)" />
+    <button id="prof-save" onclick="profileDone()" style="margin-top:6px">Save Star 0 and continue</button>
+    <div style="text-align:center;margin-top:10px"><a href="#" onclick="profileSkip();return false" style="color:#607080;font-size:13px;text-decoration:none">Skip for now</a></div>
+  </div>
+
+  <!-- STATE: Login -->
+  <div class="auth-box" id="view-login" style="display:none">
+    <h2>SOLUM</h2>
+    <p>Enter your password to access the dashboard.</p>
+    <input type="password" id="login-pw" placeholder="Password" onkeydown="if(event.key==='Enter')doLogin()" />
+    <select id="login-remember" class="settings-input" style="color:#7888a0">
+      <option value="30">Remember for 30 days</option>
+      <option value="90">Remember for 90 days</option>
+      <option value="365">Remember for 1 year</option>
+      <option value="7">Remember for 7 days</option>
+    </select>
+    <button onclick="doLogin()">Login</button>
+    <div style="margin-top:12px">
+      <a href="#" onclick="showView('recover');return false" style="color:#7eb8da;font-size:13px;text-decoration:none">Forgot password?</a>
+    </div>
+    <div class="auth-error" id="login-error"></div>
+  </div>
+
+  <!-- STATE: Recovery -->
+  <div class="auth-box" id="view-recover" style="display:none;max-width:520px">
+    <h2>Account Recovery</h2>
+    <p>Enter your 12-word recovery phrase and a new password.</p>
+    <textarea id="recover-seed" class="settings-input" style="min-height:80px;resize:vertical;font-family:monospace" placeholder="word1 word2 word3 word4 word5 word6 word7 word8 word9 word10 word11 word12"></textarea>
+    <input type="password" id="recover-pw" class="settings-input" placeholder="New password (6+ characters)" />
+    <input type="password" id="recover-pw2" class="settings-input" placeholder="Confirm new password" />
+    <button onclick="doRecover()">Reset Password</button>
+    <div style="margin-top:12px">
+      <a href="#" onclick="showView('login');return false" style="color:#7eb8da;font-size:13px;text-decoration:none">Back to login</a>
+    </div>
+    <div class="auth-error" id="recover-error"></div>
+  </div>
+
+  <!-- STATE: Loading -->
+  <div class="auth-box" id="view-loading" style="text-align:center">
+    <h2>SOLUM</h2>
+    <div class="spinner" style="margin:20px auto;width:32px;height:32px;border-width:3px"></div>
+    <p>Connecting...</p>
+  </div>
+
+</div>
+
+<!-- SETTINGS OVERLAY -->
+<div class="settings-overlay hidden" id="settings-overlay" onclick="if(event.target===this)closeSettings()">
+  <div class="settings-box">
+    <h2>Settings</h2>
+
+    <div class="settings-section">
+      <h3>This Device</h3>
+      <input type="text" id="set-device" class="settings-input" placeholder="Device name" />
+      <button class="settings-btn" onclick="doRenameDevice()">Rename Device</button>
+      <div class="settings-msg" id="set-device-msg"></div>
+    </div>
+
+    <div class="settings-section">
+      <h3>Change Password</h3>
+      <input type="password" id="set-old-pw" class="settings-input" placeholder="Current password" />
+      <input type="password" id="set-new-pw" class="settings-input" placeholder="New password (6+ characters)" />
+      <input type="password" id="set-new-pw2" class="settings-input" placeholder="Confirm new password" />
+      <button class="settings-btn" onclick="doChangePassword()">Update Password</button>
+      <div class="settings-msg" id="set-pw-msg"></div>
+    </div>
+
+    <div class="settings-section">
+      <h3>Active Sessions</h3>
+      <p style="color:#607080;font-size:13px;line-height:1.5;margin-bottom:8px">
+        Devices currently logged into your dashboard. Revoke any session to kick that device off.
+      </p>
+      <div id="set-sessions">Loading...</div>
+    </div>
+
+    <div class="settings-section">
+      <h3>Login History</h3>
+      <p style="color:#607080;font-size:13px;line-height:1.5;margin-bottom:8px">
+        Recent login attempts — successful and failed. See who accessed your dashboard and when.
+      </p>
+      <div id="set-history">Loading...</div>
+    </div>
+
+    <div class="settings-section">
+      <h3>Account Recovery</h3>
+      <p style="color:#607080;font-size:13px;line-height:1.5;margin-bottom:8px">
+        If you lose your password, use your 12-word recovery phrase to reset it.
+        The phrase was shown once during setup - we don't store it and cannot retrieve it.
+      </p>
+    </div>
+
+    <button class="settings-btn close" onclick="closeSettings()">Close</button>
+  </div>
+</div>
+
+<!-- THOUGHT DETAIL MODAL - Shows full content + file attachments, like what AI sees -->
+<div class="detail-overlay hidden" id="detail-overlay" onclick="if(event.target===this)closeDetail()">
+  <div class="detail-box">
+    <div class="detail-header">
+      <span class="detail-id" id="detail-id"></span>
+      <span class="thought-type" id="detail-type"></span>
+      <span style="margin-left:auto;font-size:12px;color:#607080" id="detail-time"></span>
+    </div>
+
+    <!-- ACTION BUTTONS -->
+    <div class="detail-actions">
+      <button class="edit-btn" id="edit-btn" onclick="startEdit()">&#x270F;&#xFE0F; Edit</button>
+      <button class="delete-btn" id="delete-btn" onclick="deleteThought()">&#x1F5D1; Delete</button>
+    </div>
+
+    <!-- READ MODE (default) -->
+    <div class="detail-view" id="detail-view">
+      <div class="detail-content" id="detail-content">Loading...</div>
+      <div class="detail-meta" id="detail-meta"></div>
+      <div class="thought-tags" id="detail-tags" style="margin-bottom:8px"></div>
+      <div class="detail-files hidden" id="detail-files">
+        <h4>Attached Files</h4>
+        <div id="detail-file-list"></div>
+      </div>
+    </div>
+
+    <!-- EDIT MODE (hidden until Edit clicked) -->
+    <div class="edit-form" id="edit-form">
+      <textarea class="edit-textarea" id="edit-content" placeholder="Thought content..."></textarea>
+      <div class="edit-row">
+        <div class="edit-field" style="flex:2">
+          <label>Tags (comma separated)</label>
+          <input type="text" id="edit-tags" placeholder="tag1, tag2, tag3" />
+        </div>
+        <div class="edit-field">
+          <label>People</label>
+          <input type="text" id="edit-people" placeholder="person1, person2" />
+        </div>
+      </div>
+      <div class="edit-row">
+        <div class="edit-field">
+          <label>Type</label>
+          <select id="edit-type">
+            <option value="thought">thought</option>
+            <option value="decision">decision</option>
+            <option value="insight">insight</option>
+            <option value="project">project</option>
+            <option value="observation">observation</option>
+            <option value="idea">idea</option>
+            <option value="person">person note</option>
+            <option value="instruction">instruction</option>
+            <option value="reference">reference</option>
+            <option value="session">session</option>
+          </select>
+        </div>
+        <div class="edit-field">
+          <label>Status</label>
+          <select id="edit-status-select">
+            <option value="none">none</option>
+            <option value="open">open</option>
+            <option value="in_progress">in_progress</option>
+            <option value="done">done</option>
+          </select>
+        </div>
+        <div class="edit-field">
+          <label>Priority (0-5)</label>
+          <input type="number" id="edit-priority" min="0" max="5" value="0" />
+        </div>
+      </div>
+      <div class="edit-save-row">
+        <button class="save-btn" id="save-btn" onclick="saveEdit()">Save Changes</button>
+        <button class="cancel-btn" onclick="cancelEdit()">Cancel</button>
+      </div>
+      <div class="edit-status" id="edit-status"></div>
+    </div>
+
+    <!-- EDIT HISTORY — permanent signatures -->
+    <div class="edit-history" id="edit-history">
+      <h4>&#x1F4DD; Edit History</h4>
+      <div id="history-list"></div>
+    </div>
+
+    <button class="detail-close" onclick="closeDetail()">Close</button>
+  </div>
+</div>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="logo">
+    SOLUM <span>v1.1</span>
+  </div>
+  <div class="status">
+    <span class="status-dot offline" id="status-dot"></span>
+    <span id="status-text">Disconnected</span>
+    &nbsp;|&nbsp;
+    <span id="status-device"></span>
+    &nbsp;|&nbsp;
+    <span id="status-memories">0 memories</span>
+    &nbsp;|&nbsp;
+    bge-base-en-v1.5
+    &nbsp;|&nbsp;
+    <div class="topbar-nav">
+      <a href="/constellation"><span class="nav-icon">&#x2728;</span>Constellation</a>
+      <a href="/admin/agents"><span class="nav-icon">&#x1f511;</span>Agent Keys</a>
+    </div>
+    <button class="topbar-btn" onclick="openSettings()">Settings</button>
+    <button class="topbar-btn logout" onclick="doLogout()">Logout</button>
+  </div>
+</div>
+
+<!-- MAIN CONTENT -->
+<div class="container">
+
+  <!-- CAPTURE THOUGHT -->
+  <div class="capture-section">
+    <h3><span class="icon">&#x1f4ad;</span> Capture a Thought</h3>
+    <textarea class="capture-textarea" id="capture-content" placeholder="What's on your mind? Type any idea, decision, note, or memory..."></textarea>
+    <div class="capture-row">
+      <input class="capture-input" id="capture-tags" placeholder="Tags (comma separated)" />
+      <input class="capture-input" id="capture-people" placeholder="People mentioned" />
+      <select class="capture-select" id="capture-type">
+        <option value="thought">thought</option>
+        <option value="decision">decision</option>
+        <option value="insight">insight</option>
+        <option value="project">project</option>
+        <option value="observation">observation</option>
+        <option value="idea">idea</option>
+        <option value="person">person note</option>
+        <option value="instruction">instruction</option>
+        <option value="reference">reference</option>
+        <option value="session">session</option>
+      </select>
+      <button class="capture-btn" id="capture-btn" onclick="captureThought()">Save to Vault</button>
+    </div>
+    <div class="capture-status" id="capture-status"></div>
+  </div>
+
+  <!-- STAT CARDS -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-label">Total Memories</div>
+      <div class="stat-value" id="stat-total"> -</div>
+      <div class="stat-sub" id="stat-total-sub">&nbsp;</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Unique Tags</div>
+      <div class="stat-value" id="stat-tags"> -</div>
+      <div class="stat-sub" id="stat-tags-sub">&nbsp;</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">People Tracked</div>
+      <div class="stat-value" id="stat-people"> -</div>
+      <div class="stat-sub" id="stat-people-sub">&nbsp;</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Database Size</div>
+      <div class="stat-value" id="stat-db"> -</div>
+      <div class="stat-sub" id="stat-db-sub">&nbsp;</div>
+    </div>
+  </div>
+
+  <!-- SEARCH BAR -->
+  <div class="search-section">
+    <div class="search-bar">
+      <div class="search-wrap">
+        <input type="text" id="search-input" placeholder="Search your mind... (finds by meaning, not just keywords)" onkeydown="if(event.key==='Enter')doSearch()" />
+        <button class="search-clear" id="search-clear" onclick="clearSearch()">&times;</button>
+      </div>
+      <button class="search-btn" onclick="doSearch()">Search</button>
+    </div>
+  </div>
+
+  <!-- TWO COLUMNS -->
+  <div class="columns">
+    <div class="panel">
+      <div class="panel-header">
+        <span class="panel-title" id="feed-title">Recent Memories</span>
+        <span style="font-size: 12px; color: #607080;" id="feed-count">Loading...</span>
+      </div>
+
+      <div class="thought-scroll" id="thought-scroll">
+        <!-- Thoughts injected here by JS -->
+        <div class="load-more hidden" id="load-more">
+          <div class="spinner"></div>
+          <span>Loading...</span>
+        </div>
+        <div class="load-count" id="load-count"></div>
+      </div>
+    </div>
+
+    <!-- RIGHT SIDEBAR -->
+    <div class="sidebar">
+
+      <!-- TRENDING TAGS -->
+      <div class="panel">
+        <div class="panel-header">
+          <span class="panel-title">Top Tags</span>
+          <span style="font-size: 11px; color: #607080;" id="tag-count"></span>
+        </div>
+        <div class="sidebar-scroll" id="trending-tags">
+          <!-- Tags injected here -->
+        </div>
+      </div>
+
+      <!-- DEVICE ACTIVITY -->
+      <div class="panel">
+        <div class="panel-header">
+          <span class="panel-title">Activity by Agent</span>
+          <span style="font-size: 11px; color: #607080;" id="device-count"></span>
+        </div>
+        <div class="sidebar-scroll">
+          <div class="device-bar-container" id="device-bars">
+            <!-- Device bars injected here -->
+          </div>
+        </div>
+      </div>
+
+      <!-- HOTTEST MEMORIES -->
+      <div class="panel">
+        <div class="panel-header">
+          <span class="panel-title">Hottest Memories</span>
+          <span style="font-size: 11px; color: #607080;">Most accessed</span>
+        </div>
+        <div class="sidebar-scroll" id="hottest-memories">
+          <!-- Hot items injected here -->
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="footer">
+    SOLUM v1.1 &mdash; Self-hosted AI memory server &mdash;
+    <a href="https://github.com/agenerationforwordz-tech/solum">GitHub</a> &mdash;
+    A Generation Forwordz Foundation &mdash;
+    Every memory is permanent
+  </div>
+
+</div>
+
+<script>
+  // SOLUM DASHBOARD - Password-based auth with session tokens.
+  // AI clients still use API keys. Seed phrase recovery for forgotten passwords.
+
+  var SERVER_URL = window.location.origin;
+  var SESSION_TOKEN = '';
+  var DEVICE_NAME = '';
+  var FEED_OFFSET = 0;        // current pagination offset for infinite scroll
+  var FEED_LOADING = false;   // prevent double-loading while a fetch is in progress
+  var FEED_DONE = false;      // true when server returns fewer than 30 - no more pages
+  var FEED_MODE = 'recent';
+  var ALL_TAGS = [];  // Populated from stats — used for smart search + autocomplete   // 'recent' = paginated feed, 'search' or 'tag' = one-shot results
+
+  function saveSession(token, device) { localStorage.setItem('solum_token', token); localStorage.setItem('solum_device', device || ''); }
+  function clearSession() { localStorage.removeItem('solum_token'); }
+  function getSavedToken() { return localStorage.getItem('solum_token') || ''; }
+  function getSavedDevice() { return localStorage.getItem('solum_device') || ''; }
+
+  function showView(name) {
+    ['setup','seed','adminkey','profile','login','recover','loading'].forEach(function(v) {
+      document.getElementById('view-' + v).style.display = (v === name) ? 'block' : 'none';
+    });
+    var saved = getSavedDevice();
+    if (saved) { var a = document.getElementById('login-device'); if (a && !a.value) a.value = saved; var b = document.getElementById('setup-device'); if (b && !b.value) b.value = saved; }
+  }
+
+  async function init() {
+    showView('loading');
+    try {
+      var savedToken = getSavedToken();
+      var headers = savedToken ? { 'Authorization': 'Bearer ' + savedToken } : {};
+      var resp = await fetch(SERVER_URL + '/api/auth/status', { headers: headers });
+      if (!resp.ok) throw new Error('unreachable');
+      var data = await resp.json();
+      if (data.demo) { document.getElementById('auth-overlay').classList.add('hidden'); loadDashboard(); return; }
+      if (!data.setup_complete) { showView('setup'); return; }
+      if (data.authenticated && savedToken) { SESSION_TOKEN = savedToken; DEVICE_NAME = data.device_name || getSavedDevice(); document.getElementById('auth-overlay').classList.add('hidden'); loadDashboard(); return; }
+      showView('login');
+    } catch (e) { showView('login'); document.getElementById('login-error').textContent = 'Cannot reach server. Is it running?'; }
+  }
+
+  async function doSetup() {
+    var pw = document.getElementById('setup-pw').value, pw2 = document.getElementById('setup-pw2').value;
+    var device = document.getElementById('setup-device').value.trim(), err = document.getElementById('setup-error');
+    if (!pw || pw.length < 6) { err.textContent = 'Password must be at least 6 characters.'; return; }
+    if (pw !== pw2) { err.textContent = 'Passwords do not match.'; return; }
+    err.textContent = 'Creating account...';
+    try {
+      var resp = await fetch(SERVER_URL + '/api/auth/setup', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ password: pw, device_name: device }) });
+      var data = await resp.json();
+      if (data.status !== 'ok') { err.textContent = data.error || 'Setup failed.'; return; }
+      SESSION_TOKEN = data.token; DEVICE_NAME = device; saveSession(data.token, device);
+      renderSeedGrid(data.seed_phrase);
+      showView('seed');
+    } catch (e) { err.textContent = 'Connection failed.'; }
+  }
+
+  function seedDone() {
+    // Clear the seed phrase from DOM - it should not persist in memory after confirmation
+    document.getElementById('seed-display').innerHTML = '';
+    // Next: set the admin key, then Star 0.
+    showView('adminkey');
+  }
+
+  async function setAdminKey() {
+    var v = document.getElementById('admin-key-input').value.trim();
+    var btn = document.getElementById('admin-key-set');
+    btn.disabled = true; btn.textContent = 'Setting...';
+    try {
+      var data = await api('/api/auth/set-admin-key', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ admin_key: v }) });
+      if (!data || data.status !== 'ok') { btn.disabled = false; btn.textContent = 'Set admin key'; document.getElementById('admin-key-error').textContent = (data && data.error) || 'Failed.'; return; }
+      document.getElementById('admin-key-shown').textContent = data.admin_key;
+      document.getElementById('admin-key-result').style.display = 'block';
+      document.getElementById('admin-key-input').disabled = true;
+      btn.style.display = 'none';
+    } catch (e) { btn.disabled = false; btn.textContent = 'Set admin key'; document.getElementById('admin-key-error').textContent = 'Connection failed.'; }
+  }
+
+  function enterDashboard() {
+    document.getElementById('auth-overlay').classList.add('hidden');
+    loadDashboard();
+  }
+
+  async function profileDone() {
+    var btn = document.getElementById('prof-save');
+    if (btn) { btn.disabled = true; btn.textContent = 'Saving...'; }
+    var use = (document.querySelector('input[name="prof-use"]:checked') || {}).value || '';
+    var body = {
+      name: document.getElementById('prof-name').value.trim(),
+      use_type: use,
+      description: document.getElementById('prof-desc').value.trim(),
+      role: document.getElementById('prof-role').value.trim(),
+      projects: document.getElementById('prof-projects').value.trim(),
+    };
+    try { await api('/dashboard/api/profile', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }); } catch (e) {}
+    enterDashboard();
+  }
+
+  function profileSkip() { enterDashboard(); }
+
+  // Render seed phrase as a numbered grid of 12 words - much easier to read and write down
+  function renderSeedGrid(phrase) {
+    var words = phrase.split(' ');
+    var html = '';
+    for (var i = 0; i < words.length; i++) {
+      html += '<div class="seed-word"><span class="seed-num">' + (i + 1) + '.</span> ' + escapeHtml(words[i]) + '</div>';
+    }
+    document.getElementById('seed-display').innerHTML = html;
+  }
+
+  async function doLogin() {
+    var pw = document.getElementById('login-pw').value;
+    var remember = parseInt(document.getElementById('login-remember').value), err = document.getElementById('login-error');
+    if (!pw) { err.textContent = 'Enter your password.'; return; }
+    err.textContent = 'Logging in...';
+    try {
+      // No device_name — server auto-detects from User-Agent
+      var resp = await fetch(SERVER_URL + '/api/auth/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ password: pw, remember_days: remember }) });
+      var data = await resp.json();
+      if (data.status !== 'ok') { err.textContent = data.error || 'Login failed.'; return; }
+      SESSION_TOKEN = data.token; DEVICE_NAME = data.device_name || ''; saveSession(data.token, DEVICE_NAME);
+      document.getElementById('auth-overlay').classList.add('hidden'); loadDashboard();
+    } catch (e) { err.textContent = 'Connection failed.'; }
+  }
+
+  async function doRecover() {
+    var seed = document.getElementById('recover-seed').value.trim(), pw = document.getElementById('recover-pw').value;
+    var pw2 = document.getElementById('recover-pw2').value, err = document.getElementById('recover-error');
+    if (!seed) { err.textContent = 'Enter your 12-word recovery phrase.'; return; }
+    if (!pw || pw.length < 6) { err.textContent = 'Password must be at least 6 characters.'; return; }
+    if (pw !== pw2) { err.textContent = 'Passwords do not match.'; return; }
+    err.textContent = 'Recovering...';
+    try {
+      var resp = await fetch(SERVER_URL + '/api/auth/recover', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ seed_phrase: seed, new_password: pw }) });
+      var data = await resp.json();
+      if (data.status !== 'ok') { err.textContent = data.error || 'Recovery failed.'; return; }
+      clearSession(); err.style.color = '#34d399'; err.textContent = 'Password reset! Redirecting to login...';
+      setTimeout(function() { err.style.color = ''; showView('login'); }, 1500);
+    } catch (e) { err.textContent = 'Connection failed.'; }
+  }
+
+  async function doLogout() {
+    try { await fetch(SERVER_URL + '/api/auth/logout', { method: 'POST', headers: { 'Authorization': 'Bearer ' + SESSION_TOKEN } }); } catch (e) {}
+    clearSession(); SESSION_TOKEN = ''; document.getElementById('auth-overlay').classList.remove('hidden'); showView('login');
+  }
+
+  function openSettings() { document.getElementById('settings-overlay').classList.remove('hidden'); document.getElementById('set-device').value = DEVICE_NAME; loadSessions(); loadHistory(); }
+
+  function closeSettings() {
+    document.getElementById('settings-overlay').classList.add('hidden');
+    document.getElementById('set-old-pw').value = ''; document.getElementById('set-new-pw').value = ''; document.getElementById('set-new-pw2').value = '';
+    document.getElementById('set-device-msg').textContent = '';
+  }
+
+  // Rename device - server enforces uniqueness + 10-day cooldown
+  async function doRenameDevice() {
+    var nd = document.getElementById('set-device').value.trim();
+    var msg = document.getElementById('set-device-msg');
+    if (nd === DEVICE_NAME) { msg.textContent = 'Name unchanged.'; msg.className = 'settings-msg'; return; }
+    try {
+      var data = await api('/api/auth/rename-device', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ device_name: nd }) });
+      if (data.status === 'ok') {
+        DEVICE_NAME = nd; localStorage.setItem('solum_device', nd);
+        document.getElementById('status-device').textContent = nd || 'dashboard';
+        msg.textContent = 'Device renamed.'; msg.className = 'settings-msg ok';
+        loadSessions();
+      } else { msg.textContent = data.error || 'Rename failed.'; msg.className = 'settings-msg err'; }
+    } catch (e) { msg.textContent = 'Error: ' + e.message; msg.className = 'settings-msg err'; }
+  }
+
+  async function doChangePassword() {
+    var old_pw = document.getElementById('set-old-pw').value, new_pw = document.getElementById('set-new-pw').value;
+    var new_pw2 = document.getElementById('set-new-pw2').value, msg = document.getElementById('set-pw-msg');
+    if (!old_pw || !new_pw) { msg.textContent = 'Fill in both fields.'; msg.className = 'settings-msg err'; return; }
+    if (new_pw.length < 6) { msg.textContent = 'New password must be 6+ characters.'; msg.className = 'settings-msg err'; return; }
+    if (new_pw !== new_pw2) { msg.textContent = 'Passwords do not match.'; msg.className = 'settings-msg err'; return; }
+    try {
+      var data = await api('/api/auth/change-password', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ old_password: old_pw, new_password: new_pw }) });
+      if (data.status === 'ok') { msg.textContent = 'Password changed.'; msg.className = 'settings-msg ok'; document.getElementById('set-old-pw').value = ''; document.getElementById('set-new-pw').value = ''; document.getElementById('set-new-pw2').value = ''; }
+      else { msg.textContent = data.error || 'Failed.'; msg.className = 'settings-msg err'; }
+    } catch (e) { msg.textContent = 'Error: ' + e.message; msg.className = 'settings-msg err'; }
+  }
+
+  async function loadSessions() {
+    var c = document.getElementById('set-sessions');
+    try {
+      var data = await api('/api/auth/sessions');
+      var s = data.sessions || [];
+      if (!s.length) { c.innerHTML = '<div style="color:#607080">No active sessions.</div>'; return; }
+      c.innerHTML = s.map(function(x) {
+        // Check if this is the current session by matching device name
+        var isCurrent = (x.device_name === DEVICE_NAME);
+        var html = '<div class="session-item">';
+        html += '<div class="session-info">';
+        html += '<span class="session-device">' + escapeHtml(x.device_name || 'Unknown') + '</span>';
+        html += '<span class="session-meta">Last active: ' + (x.last_used ? relativeTime(x.last_used) : 'never') + ' &middot; Expires: ' + (x.expires_at ? relativeTime(x.expires_at) : '?') + '</span>';
+        if (isCurrent) html += '<span class="session-current">This device</span>';
+        html += '</div>';
+        // Revoke button — not shown for current session
+        if (!isCurrent && x.id) html += '<button class="revoke-btn" onclick="revokeSession(' + x.id + ')">Revoke</button>';
+        html += '</div>';
+        return html;
+      }).join('');
+    } catch (e) { c.innerHTML = '<div style="color:#f87171">Failed to load.</div>'; }
+  }
+
+  async function revokeSession(sessionId) {
+    if (!confirm('Revoke this session? The device will be logged out.')) return;
+    try {
+      var data = await api('/api/auth/revoke', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ session_id: sessionId }) });
+      if (data.status === 'ok') { loadSessions(); }
+      else { alert(data.error || 'Revoke failed.'); }
+    } catch (e) { alert('Error: ' + e.message); }
+  }
+
+  async function loadHistory() {
+    var c = document.getElementById('set-history');
+    try {
+      var data = await api('/api/auth/history?limit=20');
+      var h = data.history || [];
+      if (!h.length) { c.innerHTML = '<div style="color:#607080">No login history yet.</div>'; return; }
+      c.innerHTML = h.map(function(x) {
+        var statusClass = x.success ? 'history-success' : 'history-fail';
+        var statusText = x.success ? 'OK' : 'FAILED';
+        var html = '<div class="history-item">';
+        html += '<span class="' + statusClass + '" style="font-weight:600;min-width:45px">' + statusText + '</span>';
+        html += '<span style="color:#9dcbed;min-width:120px">' + escapeHtml(x.device_name || 'Unknown') + '</span>';
+        html += '<span style="color:#607080;min-width:100px">' + escapeHtml(x.ip_address || '') + '</span>';
+        html += '<span style="color:#607080">' + (x.created_at ? relativeTime(x.created_at) : '') + '</span>';
+        html += '</div>';
+        return html;
+      }).join('');
+    } catch (e) { c.innerHTML = '<div style="color:#f87171">Failed to load.</div>'; }
+  }
+
+  async function api(endpoint, options) {
+    options = options || {};
+    var headers = Object.assign({ 'Authorization': 'Bearer ' + SESSION_TOKEN }, options.headers || {});
+    var resp = await fetch(SERVER_URL + endpoint, Object.assign({}, options, { headers: headers }));
+    if (resp.status === 401) { clearSession(); SESSION_TOKEN = ''; document.getElementById('auth-overlay').classList.remove('hidden'); showView('login'); throw new Error('Session expired'); }
+    return resp.json();
+  }
+
+  async function loadDashboard() {
+    setStatus('online', 'Connected');
+    document.getElementById('status-device').textContent = DEVICE_NAME || 'dashboard';
+    // Reset feed state for fresh load
+    FEED_OFFSET = 0; FEED_DONE = false; FEED_MODE = 'recent';
+    try {
+      var r = await Promise.all([api('/dashboard/api/stats'), api('/dashboard/api/thoughts?limit=30&hours=8760&offset=0'), api('/dashboard/api/report')]);
+      var s0 = r[0].stats || r[0]; var s2 = r[2].stats || r[2]; renderStats(s0); renderFeed(r[1], true); renderTrendingTags(s0, s2); renderDeviceBars(s0); renderHottest(s2);
+      // After everything renders, match thought panel height to sidebar
+      setTimeout(syncThoughtHeight, 150);
+    } catch (e) { if (e.message === 'Session expired') return; setStatus('offline', 'Error'); }
+  }
+
+  function syncThoughtHeight() {
+    var sidebar = document.querySelector('.sidebar');
+    var panel = document.querySelector('.columns > .panel');
+    var scroll = document.getElementById('thought-scroll');
+    if (!sidebar || !panel || !scroll) return;
+    // Get the sidebar's natural height (all 3 panels + gaps)
+    var sidebarH = sidebar.offsetHeight;
+    // The panel header (RECENT MEMORIES title bar) height
+    var headerH = panel.querySelector('.panel-header').offsetHeight;
+    // Set the scroll area so the panel's total = sidebar's total
+    scroll.style.maxHeight = (sidebarH - headerH - 2) + 'px';
+  }
+  window.addEventListener('resize', function() { setTimeout(syncThoughtHeight, 100); });
+
+  // Load the next page of thoughts (called by scroll listener)
+  async function loadMoreThoughts() {
+    if (FEED_LOADING || FEED_DONE || FEED_MODE !== 'recent') return;
+    FEED_LOADING = true;
+    var ld = document.getElementById('load-more');
+    ld.classList.remove('hidden');
+    try {
+      var data = await api('/dashboard/api/thoughts?limit=30&hours=8760&offset=' + FEED_OFFSET);
+      var res = data.results || [];
+      if (res.length < 30) FEED_DONE = true; // fewer than a full page = last page
+      if (res.length) {
+        var h = ''; res.forEach(function(t) { h += renderThoughtItem(t); });
+        ld.insertAdjacentHTML('beforebegin', h);
+        FEED_OFFSET += res.length;
+        document.getElementById('feed-count').textContent = FEED_OFFSET + ' loaded';
+        document.getElementById('load-count').textContent = FEED_DONE ? 'All memories loaded' : 'Scroll for more';
+      } else {
+        FEED_DONE = true;
+        document.getElementById('load-count').textContent = 'All memories loaded';
+      }
+    } catch (e) { /* silently fail, user can scroll again */ }
+    ld.classList.add('hidden');
+    FEED_LOADING = false;
+  }
+
+  function setStatus(s, t) { document.getElementById('status-dot').className = 'status-dot ' + s; document.getElementById('status-text').textContent = t; }
+  function fmt(n) { return (n || 0).toLocaleString(); }
+
+  function relativeTime(iso) {
+    if (!iso) return '';
+    var d = Date.now() - new Date(iso).getTime(), m = Math.floor(d / 60000);
+    if (m < 1) return 'just now'; if (m < 60) return m + ' min ago';
+    var h = Math.floor(m / 60); if (h < 24) return h + 'h ago';
+    var dy = Math.floor(h / 24); if (dy === 1) return 'yesterday'; if (dy < 7) return dy + 'd ago';
+    if (dy < 30) return Math.floor(dy / 7) + 'w ago'; return Math.floor(dy / 30) + 'mo ago';
+  }
+
+  function escapeHtml(t) { var d = document.createElement('div'); d.textContent = t; return d.innerHTML; }
+  function stripPrefix(c) { return c ? c.replace(/^\[SUSPICIOUS - possible injection\] /, '').replace(/^\[USER STORED NOTE\]: /, '') : ''; }
+
+  function renderStats(s) {
+    document.getElementById('stat-total').textContent = fmt(s.total_thoughts); document.getElementById('status-memories').textContent = fmt(s.total_thoughts) + ' memories';
+    var tc = Object.keys(s.top_tags || {}).length, tu = Object.values(s.top_tags || {}).reduce(function(a,b){return a+b},0);
+    document.getElementById('stat-tags').textContent = fmt(tc); document.getElementById('stat-tags-sub').textContent = fmt(tu) + ' uses';
+    var pc = Object.keys(s.top_people || {}).length, pu = Object.values(s.top_people || {}).reduce(function(a,b){return a+b},0);
+    document.getElementById('stat-people').textContent = fmt(pc); document.getElementById('stat-people-sub').textContent = fmt(pu) + ' mentions';
+    var db = s.db_size_mb || 0;
+    document.getElementById('stat-db').innerHTML = db >= 1024 ? (db/1024).toFixed(1) + '<span style="font-size:18px;color:#607080">GB</span>' : db.toFixed(1) + '<span style="font-size:18px;color:#607080">MB</span>';
+    document.getElementById('stat-db-sub').textContent = s.vault ? s.vault.total_files + ' files, ' + s.vault.total_size_human : '768-dim embeddings';
+  }
+
+  function renderFeed(recent, fresh) {
+    var sc = document.getElementById('thought-scroll'), ld = document.getElementById('load-more'), res = recent.results || [];
+    if (fresh) sc.querySelectorAll('.thought-item,.empty-state').forEach(function(e){e.remove()});
+    if (!res.length && fresh) { sc.insertAdjacentHTML('beforeend','<div class="empty-state"><div class="brain-icon">&#x1f9e0;</div><h3>Your Vault is Ready</h3><p>Capture your first thought above.</p></div>'); document.getElementById('feed-count').textContent = '0'; return; }
+    var h = ''; res.forEach(function(t){h += renderThoughtItem(t)}); ld.insertAdjacentHTML('beforebegin', h);
+    FEED_OFFSET = (fresh ? 0 : FEED_OFFSET) + res.length;
+    if (res.length < 30) FEED_DONE = true;
+    document.getElementById('feed-count').textContent = FEED_OFFSET + ' loaded';
+    document.getElementById('load-count').textContent = FEED_DONE ? 'All memories loaded' : 'Scroll for more';
+  }
+
+  function renderThoughtItem(t, sim) {
+    var c = escapeHtml(stripPrefix(t.content||'')), vt = ['thought','decision','insight','project','person','instruction','reference','session'];
+    var ty = vt.indexOf(t.type||'') >= 0 ? t.type : 'thought', ma = escapeHtml(t.machine||'unknown'), ti = relativeTime(t.created_at);
+    var tg = (t.tags||[]).map(function(x){return '<span class="tag" data-tag="'+escapeHtml(x)+'">'+escapeHtml(x)+'</span>'}).join('');
+    var fc = t.has_files ? ' data-has-files="1"' : '';
+    var sb = sim ? '<span style="font-size:11px;color:#7eb8da;font-weight:600">' + (sim*100).toFixed(0) + '%</span>' : '';
+    return '<div class="thought-item" data-id="'+t.id+'" style="animation:fadeIn .3s" title="#'+(t.display_id||t.id)+'"'+fc+'><div class="thought-meta"><span class="thought-type '+ty+'">'+ty+'</span><span class="thought-time">'+ti+'</span>'+sb+'<span class="thought-machine">'+ma+'</span></div><div class="thought-content">'+c+'</div><div class="thought-tags">'+tg+'</div>'+(t.has_files?'<div class="thought-files">&#128206; Files attached</div>':'')+'</div>';
+  }
+
+  function renderTrendingTags(s, rpt) {
+    var el = document.getElementById('trending-tags'), tt = s.top_tags||{}, ri = (rpt.trending&&rpt.trending.rising)||[], dl = (rpt.trending&&rpt.trending.declining)||[];
+    var tm = {}; ri.forEach(function(r){tm[r.tag]={d:r.change==='new'?'new':'up'}}); dl.forEach(function(d){tm[d.tag]={d:'down'}});
+    var en = Object.entries(tt).sort(function(a,b){return b[1]-a[1]});
+    ALL_TAGS = en.map(function(e){return e[0]});  // Cache all tag names for smart search
+    document.getElementById('tag-count').textContent = en.length + ' tags';
+    if (!en.length) { el.innerHTML = '<div style="padding:20px;text-align:center;color:#607080">No tags yet</div>'; return; }
+    var h = ''; en.forEach(function(e){ var t = tm[e[0].toLowerCase()], cls = t ? t.d : 'flat', txt = fmt(e[1]) + (t ? (t.d==='new'?' NEW':t.d==='up'?' &#9650;':' &#9660;') : '');
+      h += '<div class="trend-item" data-tag="'+escapeHtml(e[0])+'"><span class="trend-tag">'+escapeHtml(e[0])+'</span><span class="trend-badge '+cls+'">'+txt+'</span></div>';
+    }); el.innerHTML = h;
+  }
+
+  function renderDeviceBars(s) {
+    var el = document.getElementById('device-bars'), m = s.by_machine||{}, en = Object.entries(m).sort(function(a,b){return b[1]-a[1]});
+    document.getElementById('device-count').textContent = en.length + ' sources';
+    if (!en.length) { el.innerHTML = '<div style="padding:20px;text-align:center;color:#607080">No activity</div>'; return; }
+    var mx = en[0][1], h = ''; en.forEach(function(e){ var p = Math.max(1,Math.round(e[1]/mx*100));
+      h += '<div class="device-row"><span class="device-name">'+escapeHtml(e[0])+'</span><div class="device-bar"><div class="device-fill" style="width:'+p+'%"></div></div><span class="device-count">'+fmt(e[1])+'</span></div>';
+    }); el.innerHTML = h;
+  }
+
+  function renderHottest(rpt) {
+    var el = document.getElementById('hottest-memories'), ht = rpt.hottest_memories||[];
+    if (!ht.length) { el.innerHTML = '<div style="padding:20px;text-align:center;color:#607080">No accessed memories yet</div>'; return; }
+    var h = ''; ht.forEach(function(x,i){ h += '<div class="hot-item" onclick="openThought('+x.id+')" style="cursor:pointer"><span class="hot-rank">'+(i+1)+'</span><span class="hot-preview">'+escapeHtml(stripPrefix(x.preview||''))+'</span><span class="hot-count">'+fmt(x.access_count)+' hits</span></div>'; });
+    el.innerHTML = h;
+  }
+
+  async function captureThought() {
+    var ct = document.getElementById('capture-content').value.trim(), tr = document.getElementById('capture-tags').value.trim();
+    var pr = document.getElementById('capture-people').value.trim(), ty = document.getElementById('capture-type').value;
+    var st = document.getElementById('capture-status'), btn = document.getElementById('capture-btn');
+    if (!ct) { st.className = 'capture-status error'; st.textContent = 'Write something first!'; return; }
+    btn.disabled = true; st.className = 'capture-status'; st.textContent = 'Saving...';
+    var tags = tr ? tr.split(',').map(function(t){return t.trim()}).filter(Boolean) : [];
+    var people = pr ? pr.split(',').map(function(p){return p.trim()}).filter(Boolean) : [];
+    try {
+      var data = await api('/dashboard/api/capture', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({content:ct,type:ty,tags:tags,people:people,source:'dashboard',machine:DEVICE_NAME||'dashboard',trigger:'manual'}) });
+      if (data.status==='ok') { st.className='capture-status success'; st.textContent='Saved #'+data.thought_id; document.getElementById('capture-content').value=''; document.getElementById('capture-tags').value=''; document.getElementById('capture-people').value=''; setTimeout(loadDashboard,500); }
+      else if (data.status==='duplicate') { st.className='capture-status warning'; st.textContent='Duplicate: '+data.message; }
+      else { st.className='capture-status error'; st.textContent=data.error||'Error'; }
+    } catch(e) { st.className='capture-status error'; st.textContent=e.message; }
+    btn.disabled = false;
+  }
+
+  // === SEARCH ===
+  // All search goes through /dashboard/api/thoughts (uses session auth).
+  // Semantic search: ?q=query  |  Tag filter: ?tag=tagname
+  // No # required. No agent API key needed. Just type and go.
+
+  async function searchByTag(tag) {
+    FEED_MODE = 'tag'; FEED_DONE = true;
+    document.getElementById('search-input').value = '#' + tag;
+    document.getElementById('search-clear').className = 'search-clear visible';
+    document.getElementById('feed-title').textContent = 'Tag: ' + tag;
+    document.getElementById('feed-count').textContent = 'Filtering...';
+    hideSuggestions();
+    // Clear everything first — no stale results
+    var sc = document.getElementById('thought-scroll');
+    sc.querySelectorAll('.thought-item,.empty-state,.tag-match-banner').forEach(function(e){e.remove()});
+    try {
+      var data = await api('/dashboard/api/thoughts?tag=' + encodeURIComponent(tag) + '&limit=50');
+      var res = data.results || [];
+      if (!res.length) {
+        sc.insertAdjacentHTML('afterbegin','<div class="empty-state" style="padding:40px;text-align:center;color:#607080">No thoughts tagged "'+escapeHtml(tag)+'"</div>');
+        document.getElementById('feed-count').textContent = '0 results';
+        return;
+      }
+      var h = ''; res.forEach(function(r){ h += renderThoughtItem(r); });
+      document.getElementById('load-more').insertAdjacentHTML('beforebegin', h);
+      document.getElementById('feed-count').textContent = res.length + ' tagged';
+      document.getElementById('load-count').textContent = '';
+    } catch(e) { document.getElementById('feed-count').textContent = 'Search failed'; }
+  }
+
+  async function doSearch() {
+    var q = document.getElementById('search-input').value.trim();
+    if (!q) return;
+    hideSuggestions();
+    // Strip # if typed — route to tag search
+    if (q.startsWith('#') && q.length > 1) {
+      searchByTag(q.substring(1));
+      return;
+    }
+    // Everything else: semantic search (finds by meaning)
+    FEED_MODE = 'search'; FEED_DONE = true;
+    document.getElementById('feed-title').textContent = 'Search Results';
+    document.getElementById('feed-count').textContent = 'Searching...';
+    // Clear everything first — no stale results or failed search junk
+    var sc = document.getElementById('thought-scroll');
+    sc.querySelectorAll('.thought-item,.empty-state,.tag-match-banner').forEach(function(e){e.remove()});
+    try {
+      var data = await api('/dashboard/api/thoughts?q=' + encodeURIComponent(q) + '&limit=30');
+      var res = data.results || [];
+      // Show matching tags as clickable chips above results
+      if (ALL_TAGS.length) {
+        var matchingTags = ALL_TAGS.filter(function(t){ return t.toLowerCase().indexOf(q.toLowerCase()) !== -1; }).slice(0,4);
+        if (matchingTags.length) {
+          var chips = matchingTags.map(function(t){
+            return '<span onclick="searchByTag(\'' + t + '\')" style="display:inline-block;padding:4px 12px;margin:0 4px 4px 0;background:#1e2e3e;border:1px solid #2a4a5a;border-radius:12px;color:#00e5ff;font-size:12px;cursor:pointer">#' + t + '</span>';
+          }).join('');
+          document.getElementById('load-more').insertAdjacentHTML('beforebegin', '<div class="tag-match-banner" style="padding:8px 12px">' + chips + '</div>');
+        }
+      }
+      if (!res.length) {
+        sc.insertAdjacentHTML('afterbegin','<div class="empty-state" style="padding:40px;text-align:center;color:#607080">No results for \u201c'+escapeHtml(q)+'\u201d</div>');
+        document.getElementById('feed-count').textContent = '0 results';
+        return;
+      }
+      var h = ''; res.forEach(function(r){ h += renderThoughtItem(r, r.similarity); });
+      document.getElementById('load-more').insertAdjacentHTML('beforebegin', h);
+      document.getElementById('feed-count').textContent = res.length + ' results';
+      document.getElementById('load-count').textContent = '';
+    } catch(e) { document.getElementById('feed-count').textContent = 'Search failed'; }
+  }
+
+  document.getElementById('search-input').addEventListener('input', function() {
+    document.getElementById('search-clear').className = this.value ? 'search-clear visible' : 'search-clear';
+    if (!this.value) { document.getElementById('feed-title').textContent='Recent Memories'; hideSuggestions(); loadDashboard(); return; }
+    // Tag autocomplete — show matching tags as you type (2+ chars)
+    var v = this.value.trim().toLowerCase().replace(/^#/,'');
+    if (v.length >= 2 && ALL_TAGS.length) {
+      var matches = ALL_TAGS.filter(function(t){ return t.toLowerCase().indexOf(v) !== -1; }).slice(0,6);
+      if (matches.length) { showSuggestions(matches); } else { hideSuggestions(); }
+    } else { hideSuggestions(); }
+  });
+
+  // --- Tag autocomplete dropdown ---
+  function showSuggestions(tags) {
+    var box = document.getElementById('search-suggestions');
+    if (!box) {
+      box = document.createElement('div'); box.id = 'search-suggestions';
+      box.style.cssText = 'position:absolute;top:100%;left:0;right:80px;background:#1a2332;border:1px solid #2a3a4a;border-radius:0 0 8px 8px;z-index:100;max-height:200px;overflow-y:auto;box-shadow:0 8px 24px rgba(0,0,0,0.4);';
+      document.querySelector('.search-bar').style.position = 'relative';
+      document.querySelector('.search-bar').appendChild(box);
+    }
+    var h = '';
+    tags.forEach(function(t) {
+      h += '<div style="padding:8px 14px;cursor:pointer;color:#c0d0e0;border-bottom:1px solid #1e2e3e;display:flex;align-items:center;gap:8px;transition:background 0.15s" ';
+      h += 'onmouseover="this.style.background=\'#243040\'" onmouseout="this.style.background=\'transparent\'" ';
+      h += 'onclick="pickTag(\'' + t + '\')">';
+      h += '<span style="color:#00e5ff;font-size:12px;font-weight:bold">#</span> ' + t + '</div>';
+    });
+    box.innerHTML = h;
+    box.style.display = 'block';
+  }
+
+  function hideSuggestions() {
+    var box = document.getElementById('search-suggestions');
+    if (box) box.style.display = 'none';
+  }
+
+  function pickTag(tag) {
+    document.getElementById('search-input').value = '#' + tag;
+    hideSuggestions();
+    searchByTag(tag);
+  }
+
+  // Close suggestions when clicking outside
+  document.addEventListener('click', function(e) {
+    if (!e.target.closest('.search-bar')) hideSuggestions();
+  });
+
+  function clearSearch() {
+    document.getElementById('search-input').value = '';
+    document.getElementById('search-clear').className = 'search-clear';
+    document.getElementById('feed-title').textContent = 'Recent Memories';
+    loadDashboard();
+  }
+
+  // Infinite scroll - when user scrolls near the bottom of the feed, load the next 30
+  document.getElementById('thought-scroll').addEventListener('scroll', function() {
+    if (FEED_MODE !== 'recent' || FEED_DONE || FEED_LOADING) return;
+    if (this.scrollHeight - this.scrollTop - this.clientHeight < 200) {
+      loadMoreThoughts();
+    }
+  });
+
+  // Event delegation for tag clicks and thought clicks - no inline onclick, no XSS risk
+  document.addEventListener('click', function(e) {
+    // Tag click - data-tag attribute on .tag or .trend-item elements
+    var tagEl = e.target.closest('[data-tag]');
+    if (tagEl) { e.stopPropagation(); searchByTag(tagEl.getAttribute('data-tag')); return; }
+
+    // Thought click - data-id attribute on .thought-item elements (but not if clicking a tag inside it)
+    var thoughtEl = e.target.closest('.thought-item[data-id]');
+    if (thoughtEl) { openThought(parseInt(thoughtEl.getAttribute('data-id'))); }
+  });
+
+  // Open a thought's full detail view - same data the AI sees
+  async function openThought(id) {
+    EDITING_ID = id;
+    cancelEdit();  // reset edit mode if it was open
+    var overlay = document.getElementById('detail-overlay');
+    overlay.classList.remove('hidden');
+    document.getElementById('detail-content').textContent = 'Loading...';
+    document.getElementById('detail-tags').innerHTML = '';
+    document.getElementById('detail-meta').innerHTML = '';
+    document.getElementById('detail-files').classList.add('hidden');
+
+    try {
+      var data = await api('/dashboard/api/thoughts?id=' + id);
+      if (data.status !== 'ok' || !(data.thought || (data.results && data.results.length))) { document.getElementById('detail-content').textContent = 'Failed to load thought.'; return; }
+      var t = data.thought || data.results[0];
+
+      document.getElementById('detail-id').textContent = '#' + (t.display_id || t.id);
+      var vt = ['thought','decision','insight','project','person','instruction','reference','session'];
+      var ty = vt.indexOf(t.type||'') >= 0 ? t.type : 'thought';
+      var typeEl = document.getElementById('detail-type');
+      typeEl.textContent = ty; typeEl.className = 'thought-type ' + ty;
+      document.getElementById('detail-time').textContent = relativeTime(t.created_at);
+
+      // Full content - no truncation, pre-wrapped so formatting is preserved
+      var content = stripPrefix(t.content || '');
+      document.getElementById('detail-content').textContent = content;
+
+      // Meta info
+      var meta = '';
+      meta += '<span>Source: ' + escapeHtml(t.source || 'unknown') + '</span>';
+      meta += '<span>Device: ' + escapeHtml(t.machine || 'unknown') + '</span>';
+      if (t.access_count) meta += '<span>Accessed: ' + fmt(t.access_count) + ' times</span>';
+      if (t.people && t.people.length) meta += '<span>People: ' + t.people.map(escapeHtml).join(', ') + '</span>';
+      document.getElementById('detail-meta').innerHTML = meta;
+
+      // Tags - clickable, same data-tag pattern
+      var tags = (t.tags || []).map(function(x) { return '<span class="tag" data-tag="' + escapeHtml(x) + '">' + escapeHtml(x) + '</span>'; }).join('');
+      document.getElementById('detail-tags').innerHTML = tags;
+
+      // File attachments - show filenames, sizes, and download links
+      var files = t.attachments || [];
+      if (files.length) {
+        document.getElementById('detail-files').classList.remove('hidden');
+        var fh = '';
+        files.forEach(function(f) {
+          var size = f.file_size ? formatFileSize(f.file_size) : '';
+          var icon = getFileIcon(f.filename || '');
+          var dl = SERVER_URL + '/api/vault/file/' + t.id + '/' + encodeURIComponent(f.filename);
+          fh += '<div class="file-item">';
+          fh += '<div class="file-info"><span class="file-icon">' + icon + '</span>';
+          fh += '<span class="file-name">' + escapeHtml(f.filename) + '</span>';
+          fh += '<span class="file-size">' + size + '</span></div>';
+          fh += '<a class="file-download" href="' + dl + '" target="_blank" onclick="event.stopPropagation()">Download</a>';
+          fh += '</div>';
+        });
+        document.getElementById('detail-file-list').innerHTML = fh;
+      }
+    } catch (e) {
+      document.getElementById('detail-content').textContent = 'Error loading thought: ' + e.message;
+    }
+  }
+
+
+
+  // ── EDIT MODE ──
+  var EDITING_ID = null;  // thought ID currently being edited
+
+  function startEdit() {
+    if (!EDITING_ID) return;
+    // Populate edit fields from current detail view
+    var content = document.getElementById('detail-content').textContent;
+    var tags = Array.from(document.getElementById('detail-tags').querySelectorAll('.tag')).map(function(t) { return t.textContent; });
+    var typeEl = document.getElementById('detail-type');
+    document.getElementById('edit-content').value = content;
+    document.getElementById('edit-tags').value = tags.join(', ');
+    // Extract people from meta
+    var metaEl = document.getElementById('detail-meta');
+    var peopleSpan = metaEl.querySelector('span:last-child');
+    var people = '';
+    metaEl.querySelectorAll('span').forEach(function(s) {
+      if (s.textContent.startsWith('People:')) people = s.textContent.replace('People: ', '');
+    });
+    document.getElementById('edit-people').value = people;
+    document.getElementById('edit-type').value = typeEl.textContent || 'thought';
+
+    // Show edit form, hide read view
+    document.getElementById('detail-view').classList.add('editing');
+    document.getElementById('edit-form').classList.add('active');
+    document.getElementById('edit-btn').style.display = 'none';
+    document.getElementById('edit-status').textContent = '';
+  }
+
+  function cancelEdit() {
+    document.getElementById('detail-view').classList.remove('editing');
+    document.getElementById('edit-form').classList.remove('active');
+    document.getElementById('edit-btn').style.display = '';
+    document.getElementById('edit-status').textContent = '';
+  }
+
+  async function saveEdit() {
+    if (!EDITING_ID) return;
+    var btn = document.getElementById('save-btn');
+    var status = document.getElementById('edit-status');
+    btn.disabled = true;
+    status.textContent = 'Saving...';
+    status.className = 'edit-status';
+
+    var content = document.getElementById('edit-content').value.trim();
+    if (!content) { status.textContent = 'Content cannot be empty.'; status.className = 'edit-status err'; btn.disabled = false; return; }
+
+    var tags = document.getElementById('edit-tags').value.split(',').map(function(t) { return t.trim(); }).filter(Boolean);
+    var people = document.getElementById('edit-people').value.split(',').map(function(p) { return p.trim(); }).filter(Boolean);
+    var type = document.getElementById('edit-type').value;
+    var thoughtStatus = document.getElementById('edit-status-select') ? document.getElementById('edit-status-select').value : (document.getElementById('edit-status').value || 'none');
+    var priority = parseInt(document.getElementById('edit-priority').value) || 0;
+
+    // Read status from the select (not the status message div)
+    var statusSelect = document.getElementById('edit-status-select');
+    // Actually, the status select has id="edit-status" which conflicts with the message div
+    // The select is id="edit-status" and the div is also id="edit-status" — need to use the select
+    // Let me use the correct approach: query by the select element
+    var statusVal = document.getElementById('edit-status-select');
+    var taskStatus = statusVal ? statusVal.value : 'none';
+
+    try {
+      var data = await api('/dashboard/api/update', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          thought_id: EDITING_ID,
+          content: content,
+          tags: tags,
+          people: people,
+          type: type,
+          status: taskStatus,
+          priority: priority
+        })
+      });
+      if (data.status === 'ok') {
+        status.textContent = 'Saved!';
+        status.className = 'edit-status ok';
+        // Refresh the detail view with updated data
+        setTimeout(function() { cancelEdit(); openThought(EDITING_ID); }, 600);
+      } else {
+        status.textContent = data.error || 'Save failed.';
+        status.className = 'edit-status err';
+      }
+    } catch (e) {
+      status.textContent = 'Error: ' + e.message;
+      status.className = 'edit-status err';
+    }
+    btn.disabled = false;
+  }
+
+  async function deleteThought() {
+    if (!EDITING_ID) return;
+    if (!confirm('Permanently delete thought #' + EDITING_ID + '? This cannot be undone.')) return;
+    try {
+      // No admin key baked into the page. The logged-in owner's session grants
+      // admin (check_admin_auth accepts a valid session), so send the Bearer
+      // token. Open in demo mode; authorized by your login in a real install.
+      var dhdr = { 'Content-Type': 'application/json' };
+      if (SESSION_TOKEN) dhdr['Authorization'] = 'Bearer ' + SESSION_TOKEN;
+      var resp = await fetch(SERVER_URL + '/api/capture', {
+        method: 'DELETE',
+        headers: dhdr,
+        body: JSON.stringify({ thought_id: EDITING_ID })
+      });
+      // Refresh feed
+      closeDetail();
+      loadDashboard();
+    } catch (e) { alert('Delete failed: ' + e.message); }
+  }
+
+  // ── EDIT HISTORY (permanent signatures) ──
+  async function loadEditHistory(thoughtId) {
+    var el = document.getElementById('history-list');
+    el.innerHTML = '<div style="color:#607080;font-size:12px">Loading history...</div>';
+    try {
+      var data = await api('/dashboard/api/history?thought_id=' + thoughtId + '&limit=50');
+      var items = data.history || [];
+      if (!items.length) { el.innerHTML = '<div style="color:#607080;font-size:12px">No edit history.</div>'; return; }
+
+      var h = '';
+      items.forEach(function(entry) {
+        // Determine action icon and class
+        var icon = '&#x270F;&#xFE0F;';  // pencil for edits
+        var cls = 'sig-update';
+        var label = 'Edited';
+        if (entry.action === 'create') { icon = '&#x2728;'; cls = 'sig-create'; label = 'Created'; }
+        else if (entry.action === 'delete') { icon = '&#x1F5D1;'; cls = 'sig-delete'; label = 'Deleted'; }
+
+        // Parse changed fields
+        var fields = '';
+        try {
+          var cf = JSON.parse(entry.changed_fields || '[]');
+          if (cf.length) fields = cf.join(', ');
+        } catch (e) {
+          fields = entry.changed_fields || '';
+        }
+
+        // Format timestamp as signature
+        var ts = entry.timestamp || '';
+        var dt = ts ? new Date(ts + (ts.includes('Z') || ts.includes('+') ? '' : 'Z')) : null;
+        var timeStr = dt ? dt.toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true }) : ts;
+
+        h += '<div class="signature ' + cls + '">';
+        h += '<span class="sig-icon">' + icon + '</span>';
+        h += '<div class="sig-info">';
+        h += '<span class="sig-action">' + label + ' by ' + escapeHtml(entry.source || 'unknown') + '</span>';
+        if (fields) h += '<span class="sig-fields">Changed: ' + escapeHtml(fields) + '</span>';
+        h += '<span class="sig-time">' + escapeHtml(timeStr) + '</span>';
+        h += '</div></div>';
+      });
+      el.innerHTML = h;
+    } catch (e) {
+      el.innerHTML = '<div style="color:#f87171;font-size:12px">Failed to load history.</div>';
+    }
+  }
+
+
+  function closeDetail() { document.getElementById('detail-overlay').classList.add('hidden'); }
+
+  function formatFileSize(bytes) {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
+    if (bytes < 1073741824) return (bytes / 1048576).toFixed(1) + ' MB';
+    return (bytes / 1073741824).toFixed(1) + ' GB';
+  }
+
+  function getFileIcon(name) {
+    var ext = (name.split('.').pop() || '').toLowerCase();
+    if (['py','js','ts','html','css','sh','json','yaml','yml','toml','md','txt','csv','xml','sql','rb','go','rs','java','c','cpp','h'].indexOf(ext) >= 0) return '&#128196;';
+    if (['jpg','jpeg','png','gif','svg','webp','bmp','ico'].indexOf(ext) >= 0) return '&#128247;';
+    if (['zip','tar','gz','rar','7z'].indexOf(ext) >= 0) return '&#128230;';
+    if (['pdf'].indexOf(ext) >= 0) return '&#128213;';
+    if (['mp3','wav','flac','ogg','m4a'].indexOf(ext) >= 0) return '&#127925;';
+    if (['mp4','mkv','avi','mov','webm'].indexOf(ext) >= 0) return '&#127910;';
+    return '&#128462;';
+  }
+
+  init();
+</script>
+</body>
+</html>
+

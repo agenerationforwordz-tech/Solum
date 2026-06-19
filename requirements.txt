@@ -1,0 +1,15 @@
+# SOLUM - Self-Hosted AI Memory Server
+# Copyright (c) 2026 A Generation Forwordz Foundation
+#
+# These are the ACTUAL dependencies used by the code.
+# fastembed replaces sentence-transformers (15x lighter on ARM - no PyTorch needed)
+
+mcp>=1.0.0
+fastembed>=0.2.0
+numpy>=1.24.0
+uvicorn>=0.30.0
+starlette>=0.35.0
+
+# PostgreSQL + pgvector (required: db.py and auth.py import these directly)
+psycopg2-binary>=2.9.0
+pgvector>=0.2.0
