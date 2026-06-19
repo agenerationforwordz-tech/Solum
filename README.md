@@ -31,47 +31,52 @@ The fact that it runs comfortably on a Raspberry Pi is the proof, not the identi
 
 A normal database searches by keywords. Store "switching careers" and search for "new job" and you get nothing.
 
-Solum converts every thought into a 768 dimension vector that captures what it means, so "switching careers", "new job", and "career change" all find each other. Vectors live in PostgreSQL via pgvector with an HNSW index for fast similarity search, alongside tsvector full text search and JSONB tags. The embedding model (BAAI/bge-base-en-v1.5) runs locally through ONNX Runtime, uses roughly 100 to 150 MB of RAM, and unloads after a few minutes idle.
+Solum converts every thought into a 768 dimension vector that captures what it means, so "switching careers", "new job", and "career change" all find each other. By default those vectors live in a local SQLite file and similarity runs in process, which is plenty for one person. Point Solum at PostgreSQL and the same search runs inside the database via pgvector with an HNSW index, for many agents at once. Either way the embedding model (BAAI/bge-base-en-v1.5) runs locally through ONNX Runtime, uses roughly 100 to 150 MB of RAM, and unloads after a few minutes idle.
 
-## Try it with sample data
+## Try it now (no setup)
 
-Prefer to start from something real instead of an empty database? Download the sample dataset and land in a dashboard, search, and 3D constellation already full of example thoughts.
-
-**[ Download the demo dataset ](https://github.com/agenerationforwordz-tech/solum/releases/latest/download/solum_demo_seed.sql)**
-
-Once your database is created (see Getting started below), load it with one command:
+Want to see Solum working before you set anything up? Download this repo and run the demo. It loads sample memory into a throwaway local database and opens the dashboard in your browser. No PostgreSQL, no Docker, no account. All you need is Python.
 
 ```bash
-psql -U solum -d solum_db -f solum_demo_seed.sql
+git clone https://github.com/agenerationforwordz-tech/solum.git
+cd solum
+python start_demo.py
 ```
 
-Everything in it is sample data, so capture, edit, and delete freely. When you are ready for your own, just start with an empty database instead.
+On Windows you can just double click `run-demo.bat` instead (on Mac or Linux, `./run-demo.sh`). The launcher installs the dependencies the first time, then opens `http://localhost:4320` with a dashboard, semantic search, and the 3D constellation already full of example thoughts. It is all sample data on a throwaway database that resets every run, so explore freely. When you are ready for your own, see Getting started below.
 
 ## Getting started
 
-Solum uses PostgreSQL with the pgvector extension.
+Solum has two database backends. **SQLite is the default and needs nothing extra**, perfect for a single person or a small setup. **PostgreSQL** is for multi-agent, high-concurrency use. You pick with one environment variable.
 
-**1. Prerequisites:** Python 3.10 or newer, and PostgreSQL with pgvector installed.
+### Quick start (SQLite, works out of the box)
 
-**2. Clone and install:**
+The whole database is one local file. No external services.
+
 ```bash
 git clone https://github.com/agenerationforwordz-tech/solum.git
 cd solum
 python -m venv venv
 source venv/bin/activate        # Windows: venv\Scripts\activate
 pip install -r requirements.txt
+python server.py
 ```
 
-**3. Create the database and load the schema:**
+That is it. Open `http://localhost:4320` and the dashboard walks you through first run setup. The embedding model downloads once (about 170 MB) and is cached after that. Your memory lives in `data/brain.db`.
+
+### Scale up (PostgreSQL + pgvector)
+
+For concurrent multi-agent access with in-database vector search. Needs PostgreSQL with the pgvector extension installed.
+
+**1. Create the database and load the schema:**
 ```bash
-# create a role and database (adjust the password)
 sudo -u postgres psql -c "CREATE USER solum WITH PASSWORD 'choose-a-db-password';"
 sudo -u postgres psql -c "CREATE DATABASE solum_db OWNER solum;"
 sudo -u postgres psql -d solum_db -c "CREATE EXTENSION IF NOT EXISTS vector;"
 PGPASSWORD='choose-a-db-password' psql -h localhost -U solum -d solum_db -f solum_pg_schema.sql
 ```
 
-**4. Point Solum at it and run:**
+**2. Point Solum at it and run:**
 ```bash
 export SOLUM_DB_BACKEND=postgresql
 export SOLUM_PG_HOST=localhost
@@ -80,8 +85,6 @@ export SOLUM_PG_USER=solum
 export SOLUM_PG_PASSWORD='choose-a-db-password'
 python server.py
 ```
-
-The server runs at `http://0.0.0.0:4320`. Open it in a browser and the dashboard walks you through first run setup. The embedding model downloads once (about 170 MB) and is cached after that.
 
 ## First run setup
 
@@ -193,7 +196,7 @@ AI clients (Claude Code, Codex, bots)        Humans (browser)
    embedder.py        vault.py              auth.py (PBKDF2, seeds)
    ONNX model        file storage                  |
         |                  |                       |
-        +------ db.py: PostgreSQL + pgvector + tsvector ---------+
+        +--- db.py: SQLite by default, or PostgreSQL + pgvector --+
               thoughts, embeddings, vault, users, sessions
 ```
 

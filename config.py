@@ -26,10 +26,12 @@ AUTH_ENABLED = os.environ.get("SOLUM_AUTH_ENABLED", "true").lower() == "true"
 DEMO_MODE = os.environ.get("SOLUM_DEMO_MODE", "").lower() == "true"
 
 # --- Database Backend ---
-# Solum runs on PostgreSQL with the pgvector extension: concurrent multi-agent
-# access, in-database similarity search, scales to 1M+ thoughts. Postgres is
-# required. See the README "Getting started" section for the one-time setup.
-DB_BACKEND = os.environ.get("SOLUM_DB_BACKEND", "postgresql")
+# "sqlite" (default): works out of the box, no external database. The whole DB
+# is a local file under data/. Perfect for the demo, a single user, or a small
+# personal setup.
+# "postgresql": concurrent multi-agent access with in-database vector search,
+# for the real multi-agent / heavy-lifting deployment. See the README to set up.
+DB_BACKEND = os.environ.get("SOLUM_DB_BACKEND", "sqlite")
 
 # --- Admin Key (for destructive operations) ---
 # Destructive actions (delete thought, detach file) require this key.

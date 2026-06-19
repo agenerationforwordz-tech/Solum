@@ -398,13 +398,7 @@ def _admin_key_valid(provided):
 def _set_admin_key(new_key):
     """Store sha256(new_key) as the owner's admin key (system_config)."""
     h = hashlib.sha256(str(new_key).encode()).hexdigest()
-    conn = db.get_db()
-    conn.execute(
-        "INSERT INTO system_config (key, value, updated_at) VALUES ('admin_key_hash', %s, NOW()) "
-        "ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, updated_at = NOW()",
-        (h,),
-    )
-    conn.commit(); conn.close()
+    db.set_system_config('admin_key_hash', h)
 
 
 def _admin_key_is_set():
@@ -1847,6 +1841,9 @@ def check_auth(request, required_perm=None):
     if not AUTH_ENABLED:
         return None  # Auth disabled — let everything through
 
+    if DEMO_MODE:
+        return None  # Public demo is a no-login playground on a throwaway DB
+
     # Extract key from headers. Accept X-API-Key, X-Agent-Key, and
     # Authorization: Bearer so REST matches what the MCP layer already accepts
     # (both headers work everywhere now - no more "x-agent-key works on MCP but
@@ -2646,16 +2643,11 @@ async def dashboard_api_all_ids(request):
     auth_fail = check_dashboard_auth(request, required_perm="read")
     if auth_fail:
         return auth_fail
-    conn = db.get_db()
     # Exclude star-zero thoughts (e.g. the owner profile) from the star field:
     # they are represented by the hardcoded center Star 0, not a separate star,
     # otherwise the owner profile shows up as a duplicate "0 star" out in the
     # field. They stay fully searchable via the search endpoints.
-    rows = conn.execute(
-        "SELECT id, parent_id, branch_label, type, access_count, created_at, last_accessed "
-        "FROM thoughts WHERE NOT (COALESCE(tags, '[]'::jsonb) ? 'star-zero') ORDER BY id"
-    ).fetchall()
-    conn.close()
+    rows = db.get_constellation_rows()
     # IDs are serialized as STRINGS. Branch ids start at 1e18, which is past
     # JavaScript's safe-integer limit (2^53) - as raw JSON numbers they collapse
     # in the browser (every branch child rounds to the same value), so the
@@ -2907,16 +2899,7 @@ async def admin_api_agents_regen(request):
 def _init_system_config():
     """Create system_config table if it doesn't exist. Stores persistent settings
     like the MCP kill switch state so it survives server restarts."""
-    conn = db.get_db()
-    cur = conn.cursor()
-    cur.execute("""CREATE TABLE IF NOT EXISTS system_config (
-        key TEXT PRIMARY KEY,
-        value TEXT NOT NULL,
-        updated_at TIMESTAMPTZ DEFAULT NOW()
-    )""")
-    conn.commit()
-    cur.close()
-    conn.close()
+    db.init_system_config()
 
 def _load_kill_switch_state():
     """Load MCP enabled state from DB. Returns True if not set (default: on)."""
@@ -2938,12 +2921,7 @@ def _load_kill_switch_state():
 def _persist_kill_switch_state(enabled):
     """Save MCP enabled state to DB so it survives restarts."""
     try:
-        conn = db.get_db()
-        conn.execute(
-            "INSERT INTO system_config (key, value, updated_at) VALUES ('mcp_enabled', %s, NOW()) ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, updated_at = NOW()",
-            ('1' if enabled else '0',)
-        )
-        conn.commit()
+        db.set_system_config('mcp_enabled', '1' if enabled else '0')
     except Exception as e:
         print(f"[KILL SWITCH] Warning: could not persist state to DB: {e}")
 
@@ -3006,26 +2984,8 @@ async def dashboard_api_report(request):
     conn = db.get_db()
 
     # --- Trending tags: compare last 24h vs prior 7d ---
-    recent_tags = {}
-    rows = conn.execute(
-        "SELECT LOWER(j) as tag, COUNT(*) as cnt "
-        "FROM thoughts t, jsonb_array_elements_text(t.tags) j "
-        "WHERE t.created_at > NOW() - INTERVAL '1 day' "
-        "GROUP BY LOWER(j)"
-    ).fetchall()
-    for r in rows:
-        recent_tags[r["tag"]] = r["cnt"]
-
-    older_tags = {}
-    rows = conn.execute(
-        "SELECT LOWER(j) as tag, COUNT(*) as cnt "
-        "FROM thoughts t, jsonb_array_elements_text(t.tags) j "
-        "WHERE t.created_at > NOW() - INTERVAL '8 days' "
-        "  AND t.created_at <= NOW() - INTERVAL '1 day' "
-        "GROUP BY LOWER(j)"
-    ).fetchall()
-    for r in rows:
-        older_tags[r["tag"]] = r["cnt"]
+    recent_tags = db.get_trending_tags(1)
+    older_tags = db.get_trending_tags(8, until_days=1)
 
     rising = []
     declining = []
@@ -3312,13 +3272,7 @@ async def dashboard_api_set_profile(request):
         "projects": (data.get("projects") or "").strip()[:1000],
     }
     # 1) structured store for the setup form + Star 0 display
-    conn = db.get_db()
-    conn.execute(
-        "INSERT INTO system_config (key, value, updated_at) VALUES ('owner_profile', %s, NOW()) "
-        "ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, updated_at = NOW()",
-        (json.dumps(profile),),
-    )
-    conn.commit(); conn.close()
+    db.set_system_config('owner_profile', json.dumps(profile))
     # 2) mirror into a searchable thought so agents can read the owner/center
     parts = []
     if profile["name"]:        parts.append(f"This Solum belongs to {profile['name']}.")
@@ -3448,6 +3402,6 @@ if __name__ == "__main__":
     print(f"[solum] REST startup:    http://0.0.0.0:{PORT}/api/startup-bundle")
     print(f"[solum] REST digest:     http://0.0.0.0:{PORT}/api/digest")
     print(f"[solum] Dashboard:       http://0.0.0.0:{PORT}/dashboard")
-    print(f"[solum] Database:        PostgreSQL ({db.PG_DB})")
+    print(f"[solum] Database:        {db.DB_BACKEND}")
     print(f"[solum] Conversations:   {CONVERSATIONS_DIR}")
     uvicorn.run(app, host=HOST, port=PORT)
